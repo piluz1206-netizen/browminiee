@@ -818,41 +818,9 @@
     </div>
   </footer>
 
-  <!-- ==================== LOGIKA JAVASCRIPT + FIREBASE REAL-TIME SYNC ==================== -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    let db = null;
-    let auth = null;
-    let currentUser = null;
-    let isCloudConnected = false;
-    let knownOrderIds = new Set();
-    let initialSnapshotDone = false;
-
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'browminie-cake-prod';
-
-    function getActiveFirebaseConfig() {
-      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        try { return JSON.parse(__firebase_config); } catch (e) {}
-      }
-      const saved = localStorage.getItem('brw_custom_firebase_cfg');
-      if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
-      }
-      return null;
-    }
-
-    function updateCloudStatusUI(connected, labelText) {
-      isCloudConnected = connected;
-      const topPill = document.getElementById('cloud-sync-pill');
-      const topLabel = document.getElementById('cloud-sync-label');
-      const adminBadge = document.getElementById('admin-sync-badge');
-      const adminText = document.getElementById('admin-sync-text');
   <!-- ==================== LOGIKA JAVASCRIPT + REALTIME DATABASE SYNC ==================== -->
   <script>
-    // URL Firebase Realtime Database milik BROWMINIE CAKE (Otomatis aktif di semua perangkat!)
+    // URL Firebase Realtime Database milik BROWMINIE CAKE (Otomatis terhubung tanpa perlu tempel manual!)
     const DEFAULT_RTDB_URL = "https://browminie-cake-default-rtdb.asia-southeast1.firebasedatabase.app";
     let activeRtdbUrl = localStorage.getItem('brw_custom_rtdb_url') || DEFAULT_RTDB_URL;
     let isCloudConnected = false;
@@ -874,14 +842,14 @@
         if (adminBadge) adminBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold';
         if (adminText) adminText.textContent = 'Real-Time Cloud Terhubung';
         if (setupBanner) setupBanner.classList.add('hidden');
-        if (configTag) configTag.textContent = 'Status: Terhubung (Real-Time Aktif)';
+        if (configTag) configTag.textContent = 'Status: Terhubung Otomatis (Real-Time Aktif)';
       } else {
         if (topPill) topPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 font-semibold';
-        if (topLabel) topLabel.textContent = labelText || 'Mode Perangkat Lokal';
+        if (topLabel) topLabel.textContent = labelText || 'Menunggu Rules Firebase';
         if (adminBadge) adminBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold';
         if (adminText) adminText.textContent = 'Menunggu Rules Database';
         if (setupBanner) setupBanner.classList.remove('hidden');
-        if (configTag) configTag.textContent = 'Status: Belum Terhubung';
+        if (configTag) configTag.textContent = 'Status: Periksa Rules';
       }
     }
 
@@ -890,7 +858,6 @@
       const baseUrl = activeRtdbUrl.replace(/\/$/, '');
 
       try {
-        // 1. Ambil daftar pesanan secara real-time
         const resOrders = await fetch(`${baseUrl}/browminie/orders.json`);
         if (!resOrders.ok) {
           updateCloudStatusUI(false, 'Cek Rules Firebase');
@@ -924,7 +891,6 @@
         }
         initialSyncDone = true;
 
-        // 2. Ambil data menu & foto jika sudah pernah disimpan ke cloud
         const resMenus = await fetch(`${baseUrl}/browminie/menus.json`);
         if (resMenus.ok) {
           const menusObj = await resMenus.json();
@@ -942,7 +908,6 @@
           }
         }
 
-        // 3. Ambil pengaturan toko jika tersedia di cloud
         const resSettings = await fetch(`${baseUrl}/browminie/settings.json`);
         if (resSettings.ok) {
           const settingsData = await resSettings.json();
@@ -1052,7 +1017,6 @@
       const cfgInput = document.getElementById('firebase-config-input');
       if (cfgInput) cfgInput.value = activeRtdbUrl;
       syncFromRealtimeDB();
-      // Cek pesanan baru secara berkala setiap 4 detik agar notifikasi bel langsung berbunyi
       setInterval(syncFromRealtimeDB, 4000);
     });
   </script>
@@ -1197,7 +1161,6 @@
       return 'Rp ' + Number(angka).toLocaleString('id-ID');
     }
 
-    // Suara bel notifikasi saat ada pesanan baru
     function playNotificationBell() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1264,7 +1227,6 @@
       lucide.createIcons();
     });
 
-    // Dengarkan perubahan localStorage antar tab pada perangkat yang sama
     window.addEventListener('storage', (e) => {
       if (e.key === 'brw_orders_v1' && e.newValue) {
         const updated = JSON.parse(e.newValue);
@@ -1590,7 +1552,6 @@
         status: 'Baru'
       };
 
-      // Simpan ke Cloud Real-Time jika terhubung, serta ke localStorage
       if (window.cloudSaveOrder) {
         await window.cloudSaveOrder(newOrder);
       }
@@ -1648,7 +1609,6 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       modal.classList.remove('flex');
     }
 
-    // ==================== AKSES PIN PEMILIK TOKO ====================
     function requestAdminAccess() {
       if (isAdminUnlocked) {
         switchView('admin');
@@ -1755,7 +1715,6 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       document.getElementById('stat-total-items').innerHTML = `${totalItems} <span class="text-sm font-normal text-choco-soft">pcs</span>`;
       document.getElementById('stat-total-revenue').textContent = formatRupiah(totalRevenue);
 
-      // Render ringkasan produksi per tanggal kirim/ambil
       const schedGrid = document.getElementById('production-schedule-grid');
       const sortedDates = Object.keys(scheduleMap).sort();
       if (sortedDates.length === 0) {
