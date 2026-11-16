@@ -6,14 +6,12 @@
   <title>BROWMINIE CAKE — Brownies & Fudgy Brownies</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Montserrat, Playfair Display & Plus Jakarta Sans -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Tone.js untuk Suara Bel Notifikasi Pesanan Baru -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
   <script>
     tailwind.config = {
@@ -21,20 +19,20 @@
         extend: {
           colors: {
             choco: {
-              dark: '#2B170E',     // Darkest chocolate text & footer
-              DEFAULT: '#3E2216',  // Rich dark chocolate primary
-              melty: '#5C3321',    // Melty milk/dark chocolate accent
-              soft: '#7A4933',     // Warm cocoa muted
+              dark: '#2B170E',
+              DEFAULT: '#3E2216',
+              melty: '#5C3321',
+              soft: '#7A4933',
             },
             caramel: {
-              DEFAULT: '#C68B59',  // Melted caramel / gold accent
+              DEFAULT: '#C68B59',
               light: '#E3B992',
               pale: '#F3DFC8',
             },
             cream: {
-              DEFAULT: '#FAF5EF',  // Soft warm cream background
-              card: '#FFFDFB',     // Clean off-white card
-              warm: '#F2E7DC',     // Secondary surface
+              DEFAULT: '#FAF5EF',
+              card: '#FFFDFB',
+              warm: '#F2E7DC',
             },
           },
           fontFamily: {
@@ -52,29 +50,21 @@
   <!-- ==================== NOTIFIKASI TOAST & BANNER PESANAN BARU ==================== -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- Banner Notifikasi Pesanan Baru Real-Time (Muncul di Atas Saat Ada Order Masuk dari HP Pembeli) -->
-  <div id="realtime-order-banner" class="hidden fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-[420px] z-50 bg-choco-dark text-cream p-4 rounded-2xl shadow-2xl border-2 border-caramel animate-bounce">
-    <div class="flex items-start gap-3">
-      <div class="w-10 h-10 rounded-full bg-caramel text-choco-dark flex items-center justify-center shrink-0 mt-0.5">
+  <!-- Banner Notifikasi Besar untuk Pemilik Toko saat ada pesanan masuk -->
+  <div id="live-order-alert" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md bg-choco-dark text-cream p-4 rounded-2xl shadow-2xl border-2 border-caramel flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-caramel text-choco-dark flex items-center justify-center shrink-0 animate-bounce">
         <i data-lucide="bell-ring" class="w-5 h-5"></i>
       </div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-caramel-light">Pesanan Baru Masuk!</span>
-          <button onclick="dismissOrderBanner()" class="text-cream/60 hover:text-white text-xs">Tutup</button>
-        </div>
-        <p id="banner-order-title" class="font-bold text-sm text-white truncate mt-0.5">Kak Pembeli — #BRW-000</p>
-        <p id="banner-order-detail" class="text-xs text-cream/80 truncate">1x Fudgy Brownies • Rp 35.000</p>
-        <div class="mt-2.5 flex items-center gap-2">
-          <button onclick="dismissOrderBanner(); handleAdminNavClick();" class="px-3 py-1.5 rounded-lg bg-caramel text-choco-dark font-extrabold text-xs hover:bg-caramel-light transition">
-            Lihat di Rekap Pemilik
-          </button>
-        </div>
+      <div>
+        <p class="text-xs font-extrabold uppercase tracking-wider text-caramel-light">Pesanan Baru Masuk!</p>
+        <p id="live-order-alert-text" class="text-sm font-bold text-white leading-snug">Ada pesanan brownies baru dari pelanggan.</p>
       </div>
     </div>
+    <button onclick="dismissOrderAlert()" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold shrink-0">Tutup</button>
   </div>
 
-  <!-- ==================== TOP INFO BAR (DARI BIO IG) ==================== -->
+  <!-- ==================== TOP INFO BAR ==================== -->
   <div class="bg-choco-dark text-cream text-[11px] sm:text-xs py-2 px-4 border-b border-choco-melty">
     <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-center sm:justify-between gap-2 text-center">
       <div class="flex items-center gap-2 font-medium">
@@ -84,9 +74,10 @@
         </span>
         <span class="text-caramel-light">•</span>
         <span id="topbar-h3" class="font-semibold text-caramel-pale">Order max H-3</span>
-        <span class="hidden md:inline text-caramel-light">•</span>
-        <span id="sync-status-pill" class="hidden md:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-caramel-light">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Sinkronisasi Aktif
+        <span class="text-caramel-light">•</span>
+        <span id="cloud-sync-pill" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
+          <span id="cloud-sync-label">Mode Perangkat Lokal</span>
         </span>
       </div>
       <div class="hidden sm:flex items-center gap-3 text-cream/80">
@@ -99,15 +90,15 @@
 
   <!-- ==================== HEADER & NAVIGASI ==================== -->
   <header class="sticky top-0 z-40 bg-cream/95 backdrop-blur-md border-b border-cream-warm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
-      <!-- Logo BROWMINIE cake (Sesuai Profil IG & Stiker Kemasan) -->
-      <a href="#beranda" onclick="switchView('customer')" class="flex items-center gap-3.5 group">
-        <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white border border-choco/25 shadow-sm flex flex-col items-center justify-center p-1.5 shrink-0 group-hover:border-choco transition">
-          <span class="font-brand font-extrabold text-[9.5px] sm:text-[10.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
-          <span class="font-brand font-medium text-[8.5px] sm:text-[9.5px] tracking-[0.22em] text-choco-soft mt-1 leading-none">cake</span>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 py-3 flex items-center justify-between gap-3">
+      <!-- Logo BROWMINIE cake -->
+      <a href="#beranda" onclick="switchView('customer')" class="flex items-center gap-3 group">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white border border-choco/30 shadow-xs flex flex-col items-center justify-center p-1.5 shrink-0 group-hover:border-choco transition">
+          <span class="font-brand font-extrabold text-[8.5px] sm:text-[9.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
+          <span class="font-brand font-medium text-[7.5px] sm:text-[8.5px] tracking-[0.24em] text-choco-soft mt-1 leading-none">cake</span>
         </div>
         <div>
-          <span id="header-store-name" class="font-brand font-extrabold text-base sm:text-xl text-choco-dark tracking-wider block leading-tight">
+          <span id="header-store-name" class="font-brand font-extrabold text-base sm:text-lg text-choco-dark tracking-wider block leading-tight">
             BROWMINIE CAKE
           </span>
           <span class="text-[10px] sm:text-[11px] text-choco-soft tracking-widest uppercase font-semibold">Brownies | Fudgy Brownies</span>
@@ -119,8 +110,8 @@
         <button onclick="switchView('customer'); scrollToSection('beranda')" class="text-choco-dark hover:text-choco-melty transition py-2">Beranda</button>
         <button onclick="switchView('customer'); scrollToSection('katalog')" class="text-choco-dark hover:text-choco-melty transition py-2">Menu & Harga</button>
         <button onclick="switchView('customer'); scrollToSection('info-order')" class="text-choco-dark hover:text-choco-melty transition py-2">Info Order</button>
-        <button id="nav-admin-btn" onclick="handleAdminNavClick()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cream-warm text-choco-dark hover:bg-caramel-pale transition font-bold border border-caramel/30">
-          <i id="admin-lock-icon" data-lucide="lock" class="w-3.5 h-3.5 text-choco-melty"></i>
+        <button id="nav-admin-btn" onclick="requestAdminAccess()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cream-warm text-choco-dark hover:bg-caramel-pale transition font-bold border border-caramel/30">
+          <i data-lucide="lock" class="w-3.5 h-3.5 text-choco-melty"></i>
           <span>Rekap Pemilik</span>
           <span id="admin-badge-count" class="bg-choco text-cream text-[11px] px-1.5 py-0.5 rounded-full leading-none">0</span>
         </button>
@@ -128,24 +119,26 @@
 
       <!-- Aksi Kanan: IG + WA + Keranjang -->
       <div class="flex items-center gap-2 sm:gap-2.5">
-        <!-- Logo Instagram -->
+        <!-- Logo Instagram SVG -->
         <a id="header-ig-link" href="https://www.instagram.com/browminie.cake?rpxt=MW5zZGx0dDcycHF5cw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram Browminie Cake"
-           class="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-cream-warm bg-white text-[#E1306C] hover:bg-pink-50 hover:border-[#E1306C]/40 flex items-center justify-center transition shadow-2xs">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+           class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-cream-warm bg-white text-pink-600 hover:bg-pink-50 hover:border-pink-300 flex items-center justify-center transition shadow-2xs">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
           </svg>
         </a>
 
-        <!-- Logo WhatsApp -->
+        <!-- Logo WhatsApp SVG -->
         <a id="header-wa-link" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp Browminie Cake"
-           class="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-cream-warm bg-white text-[#25D366] hover:bg-emerald-50 hover:border-[#25D366]/50 flex items-center justify-center transition shadow-2xs">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+           class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-cream-warm bg-white text-emerald-600 hover:bg-emerald-50 hover:border-emerald-400 flex items-center justify-center transition shadow-2xs">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.475 1.331 4.991L2 22l5.184-1.359a9.927 9.927 0 0 0 4.847 1.26h.004c5.515 0 9.969-4.454 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05A9.903 9.903 0 0 0 12.031 2zm5.823 14.129c-.246.693-1.433 1.325-1.988 1.408-.51.076-1.156.108-1.865-.117-.431-.137-.984-.32-1.693-.626-2.979-1.286-4.924-4.285-5.073-4.483-.149-.199-1.211-1.611-1.211-3.073 0-1.462.766-2.181 1.038-2.478.272-.298.594-.372.792-.372.198 0 .396.002.569.01.183.009.428-.069.669.511.246.594.841 2.056.915 2.205.074.149.124.322.025.52-.099.198-.149.322-.297.495-.149.174-.312.388-.446.52-.149.149-.304.31-.131.607.173.298.769 1.269 1.651 2.055 1.135 1.012 2.092 1.326 2.389 1.475.297.149.471.124.644-.074.173-.198.743-.867.941-1.164.198-.298.396-.248.668-.149.272.099 1.733.817 2.03.966.297.149.495.223.569.347.075.124.075.718-.171 1.411z"/>
           </svg>
         </a>
 
-        <!-- Tombol Keranjang / Pesanan -->
-        <button onclick="openCartDrawer()" class="relative flex items-center gap-2 bg-choco hover:bg-choco-melty text-cream px-3.5 sm:px-4 py-2.5 rounded-full text-sm font-bold shadow-sm transition">
+        <!-- Tombol Keranjang -->
+        <button onclick="openCartDrawer()" class="relative flex items-center gap-2 bg-choco hover:bg-choco-melty text-cream px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-sm font-bold shadow-sm transition">
           <i data-lucide="shopping-bag" class="w-4 h-4 text-caramel-light"></i>
           <span class="hidden sm:inline">Keranjang</span>
           <span id="cart-count-badge" class="bg-caramel text-choco-dark text-xs font-extrabold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">0</span>
@@ -161,20 +154,18 @@
       <button onclick="openCartDrawer()" class="flex items-center gap-1 text-choco-dark hover:text-choco-melty py-1 px-2">
         <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-caramel"></i> Form Pesan
       </button>
-      <button onclick="handleAdminNavClick()" class="flex items-center gap-1 text-choco-dark font-bold bg-cream-warm px-3 py-1 rounded-full border border-caramel/30">
-        <i id="admin-lock-icon-mobile" data-lucide="lock" class="w-3 h-3 text-choco-melty"></i> Rekap (<span id="admin-badge-mobile">0</span>)
+      <button onclick="requestAdminAccess()" class="flex items-center gap-1 text-choco-dark font-bold bg-cream-warm px-3 py-1 rounded-full border border-caramel/30">
+        <i data-lucide="lock" class="w-3 h-3 text-choco-melty"></i> Rekap (<span id="admin-badge-mobile">0</span>)
       </button>
     </div>
   </header>
 
   <!-- ==================== TAMPILAN 1: HALAMAN PELANGGAN ==================== -->
   <main id="customer-view" class="flex-1">
-    
-    <!-- HERO SECTION (TEMA COKLAT LUMER MINIMALIS) -->
+    <!-- HERO SECTION -->
     <section id="beranda" class="relative overflow-hidden border-b border-cream-warm bg-gradient-to-br from-cream via-cream-warm/60 to-caramel-pale/40">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          <!-- Teks Hero -->
           <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
             <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-caramel/40 text-choco text-xs font-bold tracking-wide shadow-2xs">
               <span class="w-2 h-2 rounded-full bg-caramel"></span>
@@ -186,10 +177,9 @@
             </h1>
 
             <p class="text-choco-soft text-base sm:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              <strong class="text-choco-dark">Your comfort dessert here.</strong> Fudgy brownies panggang rumahan dengan tekstur lembut, cokelat pekat lumer, dan aneka topping melimpah. Pilih menu favoritmu dan pesan langsung sekarang!
+              <strong class="text-choco-dark">Your comfort dessert here.</strong> Fudgy brownies panggang rumahan dengan tekstur lembut, cokelat pekat lumer, dan aneka topping melimpah. Pesan dari jauh hari untuk acara spesial maupun camilan harianmu!
             </p>
 
-            <!-- Tombol CTA & Sosmed dengan Logo Resmi -->
             <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
               <a href="#katalog" class="px-6 py-3.5 rounded-full bg-choco hover:bg-choco-melty text-cream font-bold text-sm sm:text-base shadow-md shadow-choco/20 transition flex items-center gap-2">
                 <span>Pilih Menu Brownies</span>
@@ -197,21 +187,22 @@
               </a>
               <a id="hero-wa-btn" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer"
                  class="px-5 py-3.5 rounded-full bg-white hover:bg-emerald-50 text-choco-dark border border-cream-warm font-bold text-sm sm:text-base transition flex items-center gap-2 shadow-2xs">
-                <svg class="w-4 h-4 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+                <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.475 1.331 4.991L2 22l5.184-1.359a9.927 9.927 0 0 0 4.847 1.26h.004c5.515 0 9.969-4.454 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05A9.903 9.903 0 0 0 12.031 2zm5.823 14.129c-.246.693-1.433 1.325-1.988 1.408-.51.076-1.156.108-1.865-.117-.431-.137-.984-.32-1.693-.626-2.979-1.286-4.924-4.285-5.073-4.483-.149-.199-1.211-1.611-1.211-3.073 0-1.462.766-2.181 1.038-2.478.272-.298.594-.372.792-.372.198 0 .396.002.569.01.183.009.428-.069.669.511.246.594.841 2.056.915 2.205.074.149.124.322.025.52-.099.198-.149.322-.297.495-.149.174-.312.388-.446.52-.149.149-.304.31-.131.607.173.298.769 1.269 1.651 2.055 1.135 1.012 2.092 1.326 2.389 1.475.297.149.471.124.644-.074.173-.198.743-.867.941-1.164.198-.298.396-.248.668-.149.272.099 1.733.817 2.03.966.297.149.495.223.569.347.075.124.075.718-.171 1.411z"/>
                 </svg>
                 <span>WhatsApp Admin</span>
               </a>
               <a id="hero-ig-btn" href="https://www.instagram.com/browminie.cake?rpxt=MW5zZGx0dDcycHF5cw==" target="_blank" rel="noopener noreferrer"
-                 class="px-5 py-3.5 rounded-full bg-white hover:bg-pink-50 text-choco-dark border border-cream-warm font-bold text-sm sm:text-base transition flex items-center gap-2 shadow-2xs">
-                <svg class="w-4 h-4 text-[#E1306C]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                 class="px-5 py-3.5 rounded-full bg-white hover:bg-pink-50/50 text-choco-dark border border-cream-warm font-bold text-sm sm:text-base transition flex items-center gap-2 shadow-2xs">
+                <svg class="w-4 h-4 text-pink-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
                 </svg>
                 <span>@browminie.cake</span>
               </a>
             </div>
 
-            <!-- Info Singkat dari Bio IG -->
             <div class="pt-5 grid grid-cols-3 gap-3 max-w-lg mx-auto lg:mx-0 border-t border-choco/10 text-left">
               <div>
                 <p class="font-bold text-choco-dark text-xs sm:text-sm flex items-center gap-1">
@@ -234,25 +225,17 @@
             </div>
           </div>
 
-          <!-- Visual Hero Card (Menampilkan Foto Menu & Stiker Lingkaran Brand) -->
           <div class="lg:col-span-5">
             <div class="relative mx-auto max-w-md">
               <div id="hero-featured-img-wrapper" class="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-choco-dark">
-                <img
-                  id="hero-featured-img"
-                  src=""
-                  alt="BROWMINIE CAKE Fudgy Brownies"
-                  class="w-full h-full object-cover"
-                />
+                <img id="hero-featured-img" src="" alt="BROWMINIE CAKE Fudgy Brownies" class="w-full h-full object-cover" />
               </div>
-
-              <!-- Emblem Lingkaran Brand Minimalis (Sesuai Profil IG) -->
-              <div class="mt-4 sm:mt-0 sm:absolute sm:-bottom-6 sm:-left-6 bg-white p-3.5 rounded-3xl shadow-lg border border-choco/20 flex items-center gap-3.5">
-                <div class="w-16 h-16 rounded-full border border-choco-dark/30 bg-white flex flex-col items-center justify-center p-1 shrink-0 shadow-2xs">
-                  <span class="font-brand font-extrabold text-[9.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
-                  <span class="font-brand font-medium text-[8.5px] tracking-[0.22em] text-choco-soft mt-1 leading-none">cake</span>
+              <div class="mt-4 sm:mt-0 sm:absolute sm:-bottom-5 sm:-left-5 bg-white p-4 rounded-2xl shadow-lg border border-choco/20 flex items-center gap-3.5">
+                <div class="w-16 h-16 rounded-full border border-choco-dark/30 bg-white flex flex-col items-center justify-center p-1.5 shrink-0">
+                  <span class="font-brand font-extrabold text-[8.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
+                  <span class="font-brand font-medium text-[7.5px] tracking-[0.24em] text-choco-soft mt-1 leading-none">cake</span>
                 </div>
-                <div class="pr-2">
+                <div>
                   <span class="text-[10px] font-bold uppercase tracking-wider text-caramel">Comfort Dessert</span>
                   <p class="font-bold text-choco-dark text-sm leading-tight">Fudgy & Melty Brownies</p>
                   <p class="text-xs text-choco-soft">Mulai dari Rp 15.000</p>
@@ -264,36 +247,24 @@
       </div>
     </section>
 
-    <!-- KATALOG MENU BERGAMBAR & DAFTAR HARGA -->
+    <!-- KATALOG MENU -->
     <section id="katalog" class="py-12 sm:py-16">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header Katalog -->
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <span class="text-xs font-bold uppercase tracking-widest text-caramel">Our Menu</span>
             <h2 class="font-serif text-2xl sm:text-4xl font-bold text-choco-dark mt-1">Daftar Menu & Harga</h2>
             <p class="text-choco-soft text-sm sm:text-base mt-1">Pilih varian topping yang diinginkan, lalu klik <strong>+ Tambah Pesanan</strong>.</p>
           </div>
-
-          <!-- Pencarian Cepat -->
           <div class="relative w-full md:w-64">
             <i data-lucide="search" class="w-4 h-4 text-choco-soft absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-            <input
-              type="text"
-              id="search-menu-input"
-              oninput="renderMenuGrid()"
-              placeholder="Cari menu brownies..."
-              class="w-full pl-10 pr-4 py-2.5 rounded-full bg-white border border-cream-warm text-sm text-choco-dark placeholder:text-choco-soft/70 focus:outline-none focus:border-choco"
-            />
+            <input type="text" id="search-menu-input" oninput="renderMenuGrid()" placeholder="Cari menu brownies..."
+                   class="w-full pl-10 pr-4 py-2.5 rounded-full bg-white border border-cream-warm text-sm text-choco-dark placeholder:text-choco-soft/70 focus:outline-none focus:border-choco" />
           </div>
         </div>
 
-        <!-- Grid Kartu Produk -->
-        <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          <!-- Diisi via JavaScript -->
-        </div>
+        <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8"></div>
 
-        <!-- Banner Ringkasan Keranjang Mengambang (Muncul jika ada item di keranjang) -->
         <div id="floating-cart-bar" class="hidden fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-30 bg-choco-dark text-cream p-4 rounded-2xl shadow-2xl border border-caramel/40 flex items-center justify-between gap-4">
           <div>
             <p class="text-xs text-caramel-light font-medium"><span id="float-item-count">0</span> item dipilih</p>
@@ -307,7 +278,7 @@
       </div>
     </section>
 
-    <!-- INFO PEMESANAN & PENGIRIMAN (SESUAI BIO INSTAGRAM) -->
+    <!-- INFO PEMESANAN -->
     <section id="info-order" class="py-12 bg-cream-warm/60 border-t border-cream-warm">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-xl mx-auto mb-10">
@@ -320,31 +291,30 @@
               <i data-lucide="calendar-check" class="w-5 h-5"></i>
             </div>
             <h3 class="font-bold text-lg text-choco-dark mb-1">Order Maksimal H-3</h3>
-            <p class="text-sm text-choco-soft leading-relaxed">Semua brownies dibuat segar berdasarkan pesanan (freshly baked). Pastikan memesan maksimal H-3 sebelum tanggal acara atau pengambilan.</p>
+            <p class="text-sm text-choco-soft leading-relaxed">Semua brownies dibuat segar berdasarkan pesanan (freshly baked). Pemesanan dapat dilakukan dari jauh-jauh hari (minimal H-3).</p>
           </div>
           <div class="bg-white p-6 rounded-2xl border border-cream-warm shadow-2xs">
             <div class="w-10 h-10 rounded-xl bg-choco text-caramel-light flex items-center justify-center mb-4">
               <i data-lucide="truck" class="w-5 h-5"></i>
             </div>
             <h3 class="font-bold text-lg text-choco-dark mb-1">DO, COD & Ambil Sendiri</h3>
-            <p class="text-sm text-choco-soft leading-relaxed">Melayani DO (Delivery Order), COD (Cash on Delivery) area Purwokerto, maupun ambil langsung di dapur kami di Purwokerto Selatan.</p>
+            <p class="text-sm text-choco-soft leading-relaxed">Melayani DO, COD area Purwokerto, maupun ambil langsung di dapur kami di Purwokerto Selatan.</p>
           </div>
           <div class="bg-white p-6 rounded-2xl border border-cream-warm shadow-2xs">
             <div class="w-10 h-10 rounded-xl bg-choco text-caramel-light flex items-center justify-center mb-4">
               <i data-lucide="message-circle" class="w-5 h-5"></i>
             </div>
-            <h3 class="font-bold text-lg text-choco-dark mb-1">Notifikasi Otomatis ke WA</h3>
-            <p class="text-sm text-choco-soft leading-relaxed">Begitu pesanan dikirim, data langsung masuk ke rekap real-time dan otomatis diteruskan ke WhatsApp admin BROWMINIE CAKE.</p>
+            <h3 class="font-bold text-lg text-choco-dark mb-1">Notifikasi & Rekap Otomatis</h3>
+            <p class="text-sm text-choco-soft leading-relaxed">Pesanan langsung masuk ke jadwal rekap dapur dan diteruskan ke WhatsApp BROWMINIE CAKE.</p>
           </div>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- ==================== TAMPILAN 2: REKAP PESANAN & KELOLA MENU (PEMILIK TOKO) ==================== -->
+  <!-- ==================== TAMPILAN 2: REKAP PEMILIK ==================== -->
   <main id="admin-view" class="hidden flex-1 py-8 sm:py-12">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-      
       <!-- Header Admin -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-cream-warm shadow-xs">
         <div>
@@ -352,48 +322,62 @@
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-caramel-pale text-choco-dark text-xs font-bold">
               <i data-lucide="shield-check" class="w-3.5 h-3.5 text-choco"></i> Halaman Pemilik Toko
             </span>
-            <span id="admin-realtime-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
-              <span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span> Real-Time Sync Aktif
+            <span id="admin-sync-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span> <span id="admin-sync-text">Belum Terhubung ke Cloud</span>
             </span>
           </div>
-          <h1 class="font-serif text-2xl sm:text-3xl font-bold text-choco-dark">Rekap Pesanan & Kelola Foto Menu</h1>
-          <p class="text-sm text-choco-soft mt-1">Data pesanan dari seluruh perangkat pelanggan tersinkronisasi secara real-time di sini.</p>
+          <h1 class="font-serif text-2xl sm:text-3xl font-bold text-choco-dark">Rekap Pesanan & Jadwal Produksi</h1>
+          <p class="text-sm text-choco-soft mt-1">Pantau semua pesanan dari berbagai perangkat pembeli secara real-time.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2.5">
-          <button onclick="testNotificationSound()" class="px-3.5 py-2.5 rounded-xl border border-caramel/40 bg-caramel-pale/40 hover:bg-caramel-pale text-choco-dark text-sm font-semibold flex items-center gap-1.5 transition" title="Uji Suara & Notifikasi Browser">
-            <i data-lucide="bell" class="w-4 h-4 text-choco"></i> Tes Notifikasi
+          <button onclick="playNotificationBell(); showToast('Suara bel notifikasi pesanan aktif!')" class="px-3.5 py-2.5 rounded-xl border border-cream-warm bg-cream hover:bg-cream-warm text-choco-dark text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="bell-ring" class="w-4 h-4 text-caramel"></i> Tes Bel
           </button>
-          <button onclick="lockAdminAndReturn()" class="px-4 py-2.5 rounded-xl border border-cream-warm bg-cream hover:bg-cream-warm text-choco-dark text-sm font-semibold flex items-center gap-1.5 transition">
+          <button onclick="lockAdminAndExit()" class="px-4 py-2.5 rounded-xl border border-cream-warm bg-cream hover:bg-cream-warm text-choco-dark text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
             <i data-lucide="lock" class="w-4 h-4"></i> Kunci & Keluar
           </button>
-          <button onclick="exportOrdersCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold flex items-center gap-1.5 shadow-xs transition">
+          <button onclick="exportOrdersCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-xs transition">
             <i data-lucide="download" class="w-4 h-4"></i> Unduh Excel (CSV)
           </button>
         </div>
       </div>
 
-      <!-- Kartu Statistik Ringkasan -->
+      <!-- Peringatan Panduan Sync Cloud (Muncul jika dibuka di GitHub Pages & belum pasang Firebase Config) -->
+      <div id="cloud-setup-banner" class="bg-amber-50 border border-amber-300 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <p class="font-bold text-amber-900 text-sm sm:text-base flex items-center gap-2">
+            <i data-lucide="cloud-off" class="w-5 h-5 text-amber-700 shrink-0"></i>
+            <span>Agar Pesanan dari HP Pembeli Jauh Masuk Otomatis ke Laptop/HP Anda:</span>
+          </p>
+          <p class="text-xs sm:text-sm text-amber-800 leading-relaxed">
+            Saat ini website berjalan di mode lokal browser. Hubungkan dengan <strong>Firebase Firestore (Gratis)</strong> pada tab <strong>"Pengaturan Cloud & PIN"</strong> agar pesanan dari perangkat mana pun langsung muncul real-time di sini!
+          </p>
+        </div>
+        <button onclick="switchAdminTab('products')" class="px-4 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shrink-0 transition">
+          Atur Sinkronisasi Cloud
+        </button>
+      </div>
+
+      <!-- Kartu Statistik -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         <div class="bg-white p-6 rounded-2xl border border-cream-warm flex items-center gap-4">
           <div class="w-12 h-12 rounded-2xl bg-cream-warm text-choco flex items-center justify-center shrink-0">
             <i data-lucide="shopping-bag" class="w-6 h-6"></i>
           </div>
           <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-choco-soft">Total Pesanan</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-choco-soft">Total Pesanan Masuk</p>
             <p id="stat-total-orders" class="text-2xl sm:text-3xl font-extrabold text-choco-dark mt-0.5">0</p>
           </div>
         </div>
-
         <div class="bg-white p-6 rounded-2xl border border-cream-warm flex items-center gap-4">
           <div class="w-12 h-12 rounded-2xl bg-cream-warm text-choco flex items-center justify-center shrink-0">
             <i data-lucide="package" class="w-6 h-6"></i>
           </div>
           <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-choco-soft">Total Box / Cup Terjual</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-choco-soft">Total Box / Cup Dipesan</p>
             <p id="stat-total-items" class="text-2xl sm:text-3xl font-extrabold text-choco-dark mt-0.5">0 <span class="text-sm font-normal text-choco-soft">pcs</span></p>
           </div>
         </div>
-
         <div class="bg-choco text-cream p-6 rounded-2xl shadow-md flex items-center gap-4">
           <div class="w-12 h-12 rounded-2xl bg-white/10 text-caramel-light flex items-center justify-center shrink-0">
             <i data-lucide="wallet" class="w-6 h-6"></i>
@@ -405,6 +389,19 @@
         </div>
       </div>
 
+      <!-- Rekap Jadwal Produksi per Tanggal Kirim/Ambil (Untuk Bisnis Rumahan H-3) -->
+      <div class="bg-white rounded-3xl border border-cream-warm p-6 shadow-xs">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="font-serif font-bold text-lg sm:text-xl text-choco-dark">Rekap Produksi per Tanggal Kirim / Ambil</h2>
+            <p class="text-xs text-choco-soft">Membantu Anda menghitung berapa box/cup yang harus dipanggang untuk setiap tanggal pesanan.</p>
+          </div>
+        </div>
+        <div id="production-schedule-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <p class="text-xs text-choco-soft italic col-span-full">Belum ada jadwal pesanan aktif.</p>
+        </div>
+      </div>
+
       <!-- Sub-Tab Admin -->
       <div class="bg-white rounded-3xl border border-cream-warm overflow-hidden shadow-xs">
         <div class="border-b border-cream-warm px-6 pt-4 flex flex-wrap items-center justify-between gap-4 bg-cream/50">
@@ -413,12 +410,12 @@
               Daftar Rekap Pesanan
             </button>
             <button id="tab-products-btn" onclick="switchAdminTab('products')" class="pb-3.5 text-sm font-semibold border-b-2 border-transparent text-choco-soft hover:text-choco-dark transition">
-              Kelola Foto, Menu & PIN
+              Kelola Foto, Menu, Cloud & PIN
             </button>
           </div>
-
-          <!-- Filter Status Pesanan -->
-          <div id="order-filter-controls" class="pb-3 flex items-center gap-2">
+          <div id="order-filter-controls" class="pb-3 flex flex-wrap items-center gap-2">
+            <input type="date" id="filter-order-date" onchange="renderAdminOrders()" title="Filter berdasarkan tanggal ambil/kirim"
+                   class="text-xs bg-white border border-cream-warm rounded-xl px-2.5 py-1.5 text-choco-dark focus:outline-none focus:border-choco" />
             <select id="filter-order-status" onchange="renderAdminOrders()" class="text-xs sm:text-sm bg-white border border-cream-warm rounded-xl px-3 py-1.5 text-choco-dark focus:outline-none focus:border-choco">
               <option value="Semua">Semua Status</option>
               <option value="Baru">Baru</option>
@@ -431,51 +428,79 @@
           </div>
         </div>
 
-        <!-- KONTEN SUB-TAB 1: TABEL REKAP PESANAN -->
+        <!-- TAB 1: TABEL REKAP PESANAN -->
         <div id="admin-tab-orders" class="p-4 sm:p-6">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-cream-warm text-xs font-bold uppercase tracking-wider text-choco-soft bg-cream/60">
-                  <th class="py-3.5 px-4 rounded-tl-xl">ID & Waktu</th>
+                  <th class="py-3.5 px-4 rounded-tl-xl">ID & Waktu Pesan</th>
                   <th class="py-3.5 px-4">Pemesan</th>
                   <th class="py-3.5 px-4">Rincian Pesanan & Topping</th>
-                  <th class="py-3.5 px-4">Tanggal & Metode</th>
+                  <th class="py-3.5 px-4">Jadwal Kirim & Metode</th>
                   <th class="py-3.5 px-4">Total</th>
                   <th class="py-3.5 px-4 rounded-tr-xl">Status</th>
                 </tr>
               </thead>
-              <tbody id="admin-orders-tbody" class="divide-y divide-cream-warm text-sm">
-                <!-- Diisi via JavaScript -->
-              </tbody>
+              <tbody id="admin-orders-tbody" class="divide-y divide-cream-warm text-sm"></tbody>
             </table>
           </div>
           <div id="empty-orders-state" class="hidden py-12 text-center">
             <div class="w-14 h-14 rounded-full bg-cream-warm text-choco mx-auto flex items-center justify-center mb-3">
               <i data-lucide="inbox" class="w-7 h-7"></i>
             </div>
-            <p class="font-bold text-choco-dark">Belum ada pesanan pada kategori ini</p>
-            <p class="text-xs text-choco-soft mt-1">Pesanan baru dari perangkat mana pun akan langsung muncul di sini.</p>
+            <p class="font-bold text-choco-dark">Belum ada pesanan pada filter ini</p>
+            <p class="text-xs text-choco-soft mt-1">Pesanan baru dari pelanggan akan muncul otomatis di sini.</p>
           </div>
         </div>
 
-        <!-- KONTEN SUB-TAB 2: KELOLA FOTO & MENU KUE + PENGATURAN TOKO & PIN -->
+        <!-- TAB 2: KELOLA MENU, SINKRONISASI CLOUD & PIN -->
         <div id="admin-tab-products" class="hidden p-6 space-y-8">
+          <!-- Pengaturan Sinkronisasi Cloud Real-Time (Firebase) -->
+          <div class="bg-emerald-50/70 p-6 rounded-2xl border border-emerald-200 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 class="font-serif font-bold text-xl text-choco-dark flex items-center gap-2">
+                  <i data-lucide="cloud" class="w-5 h-5 text-emerald-700"></i>
+                  <span>Sinkronisasi Real-Time Antar Perangkat (Firebase Cloud)</span>
+                </h3>
+                <p class="text-xs text-choco-soft mt-1">
+                  Tempelkan konfigurasi proyek Firebase gratis Anda di bawah ini (atau biarkan otomatis jika dijalankan di lingkungan Canvas) agar pesanan dari HP pelanggan jarak jauh langsung masuk ke halaman ini.
+                </p>
+              </div>
+              <span id="cloud-config-status-tag" class="px-3 py-1 rounded-full text-xs font-bold bg-white border border-emerald-300 text-emerald-800 shrink-0">
+                Status: Menunggu Konfigurasi
+              </span>
+            </div>
+
+            <form onsubmit="handleSaveFirebaseConfig(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-choco-dark mb-1">Tempel Kode Konfigurasi Firebase (JSON atau firebaseConfig):</label>
+                <textarea id="firebase-config-input" rows="4" placeholder='Contoh: {"apiKey": "AIzaSy...", "authDomain": "browminie.firebaseapp.com", "projectId": "browminie", "storageBucket": "...", "messagingSenderId": "...", "appId": "..."}'
+                          class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-emerald-300 text-xs font-mono focus:outline-none focus:border-choco"></textarea>
+              </div>
+              <div class="flex flex-wrap items-center gap-2.5">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm transition">
+                  Hubungkan & Aktifkan Real-Time Sync
+                </button>
+                <button type="button" onclick="clearCustomFirebaseConfig()" class="px-4 py-2.5 rounded-xl bg-white border border-cream-warm text-choco-soft hover:text-red-700 text-xs font-semibold transition">
+                  Putuskan Koneksi Cloud
+                </button>
+              </div>
+            </form>
+          </div>
+
           <!-- Daftar Menu Aktif -->
           <div>
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-              <div>
-                <h3 class="font-serif font-bold text-xl text-choco-dark">Daftar Menu Aktif & Ganti Foto</h3>
-                <p class="text-xs text-choco-soft">Perubahan foto dan menu langsung tersinkronisasi ke semua HP/device pembeli.</p>
-              </div>
+            <div class="mb-4">
+              <h3 class="font-serif font-bold text-xl text-choco-dark">Daftar Menu Aktif & Ganti Foto</h3>
+              <p class="text-xs text-choco-soft">Klik tombol <strong>"Ganti Foto"</strong> untuk mengunggah foto dari galeri HP atau folder laptop Anda.</p>
             </div>
-            <div id="admin-menu-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Diisi JS -->
-            </div>
+            <div id="admin-menu-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6 border-t border-cream-warm">
-            <!-- Form Tambah Menu Baru -->
+            <!-- Tambah Menu Baru -->
             <div class="bg-cream/60 p-6 rounded-2xl border border-cream-warm">
               <h3 class="font-serif font-bold text-xl text-choco-dark mb-1">+ Tambah Menu Baru</h3>
               <p class="text-xs text-choco-soft mb-4">Tambahkan varian kue baru beserta foto langsung dari galeri.</p>
@@ -486,7 +511,6 @@
                   <input type="text" id="new-menu-name" required placeholder="Contoh: Fudgy Brownies Loyang Besar"
                          class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                   <div>
                     <label class="block text-xs font-bold text-choco-dark mb-1">Harga (Rp) *</label>
@@ -494,35 +518,32 @@
                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                   </div>
                   <div>
-                    <label class="block text-xs font-bold text-choco-dark mb-1">Pilihan Topping (Pisahkan koma)</label>
+                    <label class="block text-xs font-bold text-choco-dark mb-1">Pilihan Topping</label>
                     <input type="text" id="new-menu-toppings" placeholder="Mix Topping, Chocochips, Keju"
                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                   </div>
                 </div>
-
                 <div>
                   <label class="block text-xs font-bold text-choco-dark mb-1">Deskripsi Singkat *</label>
                   <textarea id="new-menu-desc" rows="2" required placeholder="Ukuran kemasan, tekstur, dan pilihan topping..."
                             class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco"></textarea>
                 </div>
-
                 <div>
                   <label class="block text-xs font-bold text-choco-dark mb-1">Pilih Foto Kue dari Galeri / Laptop</label>
                   <input type="file" id="new-menu-file" accept="image/*"
                          class="w-full text-xs text-choco-soft file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-choco file:text-cream hover:file:bg-choco-melty cursor-pointer bg-white p-1.5 rounded-xl border border-cream-warm" />
                 </div>
-
                 <button type="submit" class="w-full py-3 rounded-xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm transition shadow-xs">
                   Simpan Menu Baru
                 </button>
               </form>
             </div>
 
-            <!-- Pengaturan Info Toko & PIN Pemilik -->
+            <!-- Pengaturan Info Toko & PIN -->
             <div class="bg-cream/60 p-6 rounded-2xl border border-cream-warm flex flex-col justify-between">
               <div>
-                <h3 class="font-serif font-bold text-xl text-choco-dark mb-1">Pengaturan Toko, Kontak & PIN</h3>
-                <p class="text-xs text-choco-soft mb-4">Ubah status toko, nomor WhatsApp notifikasi, link IG, atau PIN halaman pemilik.</p>
+                <h3 class="font-serif font-bold text-xl text-choco-dark mb-1">Pengaturan Toko & PIN Pemilik</h3>
+                <p class="text-xs text-choco-soft mb-4">Ubah PIN kunci halaman rekap, status buka/tutup, nomor WA, atau link IG.</p>
                 
                 <form onsubmit="handleSaveStoreSettings(event)" class="space-y-3.5">
                   <div class="grid grid-cols-2 gap-3">
@@ -532,34 +553,27 @@
                              class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                     </div>
                     <div>
-                      <label class="block text-xs font-bold text-choco-dark mb-1">Status Toko</label>
-                      <input type="text" id="setting-store-status" required placeholder="We're OPEN"
+                      <label class="block text-xs font-bold text-choco-dark mb-1">PIN Rekap Pemilik (4-6 Angka)</label>
+                      <input type="password" id="setting-admin-pin" required maxlength="6" pattern="[0-9]{4,6}" placeholder="1234"
                              class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                     </div>
                   </div>
                   <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-choco-dark mb-1">Status Toko</label>
+                      <input type="text" id="setting-store-status" required placeholder="We're OPEN"
+                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                    </div>
                     <div>
                       <label class="block text-xs font-bold text-choco-dark mb-1">Ketentuan Order</label>
                       <input type="text" id="setting-store-h3" required placeholder="Order max H-3"
                              class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                     </div>
-                    <div>
-                      <label class="block text-xs font-bold text-choco-dark mb-1">Lokasi</label>
-                      <input type="text" id="setting-store-location" required placeholder="Purwokerto Selatan"
-                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
-                    </div>
                   </div>
-                  <div class="grid grid-cols-2 gap-3">
-                    <div>
-                      <label class="block text-xs font-bold text-choco-dark mb-1">No. WhatsApp Penerima Order</label>
-                      <input type="text" id="setting-store-wa" required placeholder="628985490037"
-                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
-                    </div>
-                    <div>
-                      <label class="block text-xs font-bold text-choco-dark mb-1">PIN Rekap Pemilik (4-6 Angka)</label>
-                      <input type="text" id="setting-admin-pin" required pattern="[0-9]{4,6}" maxlength="6" placeholder="1234"
-                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm font-bold tracking-widest focus:outline-none focus:border-choco" />
-                    </div>
+                  <div>
+                    <label class="block text-xs font-bold text-choco-dark mb-1">Nomor WhatsApp Admin (Awali 62)</label>
+                    <input type="text" id="setting-store-wa" required placeholder="628985490037"
+                           class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                   </div>
                   <div>
                     <label class="block text-xs font-bold text-choco-dark mb-1">Link Instagram</label>
@@ -567,7 +581,7 @@
                            class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
                   </div>
                   <button type="submit" class="w-full py-3 rounded-xl bg-caramel hover:bg-caramel-light text-choco-dark font-extrabold text-sm transition">
-                    Simpan Pengaturan & PIN
+                    Simpan Pengaturan Toko & PIN
                   </button>
                 </form>
               </div>
@@ -578,32 +592,9 @@
     </div>
   </main>
 
-  <!-- ==================== MODAL PIN PEMILIK TOKO ==================== -->
-  <div id="pin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/70 backdrop-blur-xs">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 border border-cream-warm shadow-2xl text-center space-y-4">
-      <div class="w-14 h-14 rounded-full bg-cream-warm text-choco mx-auto flex items-center justify-center">
-        <i data-lucide="lock" class="w-7 h-7"></i>
-      </div>
-      <div>
-        <h3 class="font-serif text-xl font-bold text-choco-dark">Akses Khusus Pemilik Toko</h3>
-        <p class="text-xs text-choco-soft mt-1">Masukkan PIN untuk membuka rekap pesanan & mengaktifkan notifikasi suara pesanan masuk.</p>
-      </div>
-      <form onsubmit="verifyAdminPin(event)" class="space-y-3">
-        <input type="password" id="pin-input" inputmode="numeric" maxlength="6" required placeholder="••••"
-               class="w-full text-center text-2xl font-extrabold tracking-[0.5em] py-3 rounded-2xl bg-cream border border-cream-warm text-choco-dark focus:outline-none focus:border-choco" />
-        <p id="pin-error-msg" class="hidden text-xs text-red-600 font-semibold">PIN salah. Silakan coba lagi (PIN standar: 1234).</p>
-        <div class="flex gap-2.5 pt-1">
-          <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 rounded-xl border border-cream-warm text-choco-dark font-semibold text-sm hover:bg-cream">Batal</button>
-          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm">Buka Rekap</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ==================== DRAWER KERANJANG & FORM PEMESANAN ==================== -->
+  <!-- ==================== DRAWER KERANJANG ==================== -->
   <div id="cart-drawer-backdrop" onclick="closeCartDrawer()" class="fixed inset-0 bg-choco-dark/60 backdrop-blur-xs z-50 hidden transition-opacity"></div>
   <aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full sm:w-[460px] bg-cream z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
-    <!-- Header Drawer -->
     <div class="px-6 py-4 bg-white border-b border-cream-warm flex items-center justify-between">
       <div class="flex items-center gap-2.5">
         <i data-lucide="shopping-bag" class="w-5 h-5 text-choco"></i>
@@ -614,21 +605,15 @@
       </button>
     </div>
 
-    <!-- Isi Drawer -->
     <div class="flex-1 overflow-y-auto p-6 space-y-6">
-      <!-- Daftar Item -->
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-xs font-bold uppercase tracking-wider text-choco-soft">Brownies yang Dipilih</h3>
           <button onclick="clearCart()" id="clear-cart-btn" class="text-xs text-choco-melty hover:underline font-semibold hidden">Kosongkan</button>
         </div>
-
-        <div id="cart-items-container" class="space-y-3">
-          <!-- Diisi via JS -->
-        </div>
+        <div id="cart-items-container" class="space-y-3"></div>
       </div>
 
-      <!-- Ringkasan Harga -->
       <div id="cart-summary-box" class="bg-white p-4 rounded-2xl border border-cream-warm space-y-2 hidden">
         <div class="flex justify-between text-sm text-choco-soft">
           <span>Total Jumlah</span>
@@ -640,7 +625,6 @@
         </div>
       </div>
 
-      <!-- Form Data Pemesan -->
       <form id="checkout-form" onsubmit="submitOrder(event)" class="space-y-4 hidden">
         <div class="bg-caramel-pale/50 border border-caramel/40 rounded-xl p-3 text-xs text-choco-dark flex items-start gap-2">
           <i data-lucide="info" class="w-4 h-4 text-choco shrink-0 mt-0.5"></i>
@@ -648,13 +632,11 @@
         </div>
 
         <h3 class="text-xs font-bold uppercase tracking-wider text-choco-soft pt-1">Data Pemesan</h3>
-        
         <div>
           <label class="block text-xs font-bold text-choco-dark mb-1">Nama Pemesan *</label>
           <input type="text" id="order-name" required placeholder="Masukkan nama lengkap Anda"
                  class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-choco-dark mb-1">Nomor WhatsApp *</label>
@@ -667,7 +649,6 @@
                    class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
           </div>
         </div>
-
         <div>
           <label class="block text-xs font-bold text-choco-dark mb-1">Metode Pengiriman *</label>
           <div class="grid grid-cols-3 gap-2">
@@ -691,46 +672,62 @@
             </label>
           </div>
         </div>
-
         <div>
           <label id="address-label" class="block text-xs font-bold text-choco-dark mb-1">Alamat Pengiriman / Titik COD *</label>
-          <textarea id="order-notes" rows="2" required placeholder="Masukkan alamat lengkap pengiriman (area Purwokerto) & catatan tambahan..."
+          <textarea id="order-notes" rows="2" required placeholder="Masukkan alamat lengkap pengiriman & catatan tambahan..."
                     class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco"></textarea>
         </div>
-
         <button type="submit" id="submit-order-btn" class="w-full py-3.5 rounded-2xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm sm:text-base shadow-lg shadow-choco/20 flex items-center justify-center gap-2 transition">
-          <i data-lucide="send" class="w-4 h-4 text-caramel-light"></i>
-          <span>Pesan & Kirim Notifikasi ke WA Admin</span>
+          <i data-lucide="check-circle-2" class="w-5 h-5 text-caramel-light"></i>
+          <span>Pesan Sekarang & Kirim Notifikasi</span>
         </button>
       </form>
     </div>
   </aside>
 
-  <!-- ==================== MODAL KONFIRMASI PESANAN BERHASIL ==================== -->
+  <!-- ==================== MODAL PIN PEMILIK TOKO ==================== -->
+  <div id="pin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/70 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 border border-cream-warm shadow-2xl text-center space-y-4">
+      <div class="w-14 h-14 rounded-full bg-cream-warm text-choco mx-auto flex items-center justify-center">
+        <i data-lucide="lock" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h3 class="font-serif text-xl font-bold text-choco-dark">Akses Pemilik Toko</h3>
+        <p class="text-xs text-choco-soft mt-1">Masukkan PIN untuk membuka Rekap Pesanan & Kelola Menu (PIN bawaan: <strong>1234</strong>).</p>
+      </div>
+      <form onsubmit="verifyAdminPin(event)" class="space-y-3">
+        <input type="password" id="pin-input" inputmode="numeric" maxlength="6" required placeholder="••••"
+               class="w-full text-center tracking-[0.5em] font-extrabold text-xl py-3 rounded-2xl bg-cream border border-cream-warm text-choco-dark focus:outline-none focus:border-choco" />
+        <p id="pin-error-msg" class="text-xs text-red-600 font-semibold hidden">PIN salah. Silakan coba lagi.</p>
+        <div class="flex gap-2.5 pt-1">
+          <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 rounded-xl border border-cream-warm text-choco-dark font-semibold text-sm hover:bg-cream">Batal</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm">Buka Rekap</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL SUKSES ==================== -->
   <div id="success-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/65 backdrop-blur-xs">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-cream-warm shadow-2xl text-center space-y-5">
       <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
         <i data-lucide="check" class="w-8 h-8"></i>
       </div>
       <div>
-        <span class="text-xs font-bold uppercase tracking-wider text-caramel">Pesanan Tercatat Real-Time</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-caramel">Pesanan Tercatat</span>
         <h3 class="font-serif text-2xl font-bold text-choco-dark mt-1">Terima Kasih, <span id="modal-customer-name">Kak</span>!</h3>
         <p class="text-sm text-choco-soft mt-2 leading-relaxed">
-          Pesanan Anda (<strong id="modal-order-id" class="text-choco-dark">#BRW-001</strong>) sudah masuk otomatis ke rekap dapur <strong>BROWMINIE CAKE</strong>. Pastikan klik tombol WhatsApp di bawah agar notifikasi masuk ke HP admin!
+          Pesanan Anda (<strong id="modal-order-id" class="text-choco-dark">#BRW-001</strong>) sudah tercatat. Klik tombol di bawah untuk mengonfirmasi ke WhatsApp <strong>BROWMINIE CAKE</strong>.
         </p>
       </div>
-
-      <div class="bg-cream p-3.5 rounded-2xl border border-cream-warm text-left text-xs text-choco-dark space-y-1 max-h-40 overflow-y-auto" id="modal-order-summary">
-        <!-- Ringkasan -->
-      </div>
-
+      <div class="bg-cream p-3.5 rounded-2xl border border-cream-warm text-left text-xs text-choco-dark space-y-1 max-h-40 overflow-y-auto" id="modal-order-summary"></div>
       <div class="space-y-2.5 pt-1">
         <a id="modal-wa-send-btn" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer"
-           class="w-full py-3.5 rounded-xl bg-[#25D366] hover:bg-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+           class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.475 1.331 4.991L2 22l5.184-1.359a9.927 9.927 0 0 0 4.847 1.26h.004c5.515 0 9.969-4.454 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05A9.903 9.903 0 0 0 12.031 2zm5.823 14.129c-.246.693-1.433 1.325-1.988 1.408-.51.076-1.156.108-1.865-.117-.431-.137-.984-.32-1.693-.626-2.979-1.286-4.924-4.285-5.073-4.483-.149-.199-1.211-1.611-1.211-3.073 0-1.462.766-2.181 1.038-2.478.272-.298.594-.372.792-.372.198 0 .396.002.569.01.183.009.428-.069.669.511.246.594.841 2.056.915 2.205.074.149.124.322.025.52-.099.198-.149.322-.297.495-.149.174-.312.388-.446.52-.149.149-.304.31-.131.607.173.298.769 1.269 1.651 2.055 1.135 1.012 2.092 1.326 2.389 1.475.297.149.471.124.644-.074.173-.198.743-.867.941-1.164.198-.298.396-.248.668-.149.272.099 1.733.817 2.03.966.297.149.495.223.569.347.075.124.075.718-.171 1.411z"/>
           </svg>
-          <span>Kirim Pesanan ke WhatsApp Admin</span>
+          <span>Kirim Pesanan ke WhatsApp</span>
         </a>
         <button onclick="closeSuccessModal()" class="w-full py-2.5 rounded-xl bg-cream-warm hover:bg-caramel-pale text-choco-dark font-semibold text-sm transition">
           Tutup & Kembali ke Beranda
@@ -739,14 +736,14 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL KONFIRMASI RESET DATA ==================== -->
+  <!-- ==================== MODAL RESET ==================== -->
   <div id="confirm-reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/65 backdrop-blur-xs">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-cream-warm shadow-2xl text-center space-y-4">
       <div class="w-12 h-12 rounded-full bg-red-100 text-red-700 mx-auto flex items-center justify-center">
         <i data-lucide="alert-triangle" class="w-6 h-6"></i>
       </div>
       <h3 class="font-serif text-xl font-bold text-choco-dark">Hapus Semua Rekap?</h3>
-      <p class="text-xs text-choco-soft leading-relaxed">Seluruh data riwayat pesanan real-time akan dihapus secara permanen dari semua perangkat.</p>
+      <p class="text-xs text-choco-soft leading-relaxed">Seluruh data riwayat pesanan akan dihapus permanen.</p>
       <div class="flex gap-2.5 pt-2">
         <button onclick="closeResetModal()" class="flex-1 py-2.5 rounded-xl border border-cream-warm text-choco-dark font-semibold text-sm hover:bg-cream">Batal</button>
         <button onclick="executeClearOrders()" class="flex-1 py-2.5 rounded-xl bg-red-700 text-white font-semibold text-sm hover:bg-red-800">Ya, Hapus</button>
@@ -758,12 +755,11 @@
   <footer class="bg-choco-dark text-cream/90 mt-auto border-t border-choco">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10">
-        <!-- Brand & Logo Lingkaran Besar -->
         <div class="space-y-3">
-          <div class="flex items-center gap-3.5">
-            <div class="w-16 h-16 rounded-full bg-white flex flex-col items-center justify-center p-1.5 shrink-0 shadow-sm">
-              <span class="font-brand font-extrabold text-[9.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
-              <span class="font-brand font-medium text-[8.5px] tracking-[0.22em] text-choco-soft mt-1 leading-none">cake</span>
+          <div class="flex items-center gap-3">
+            <div class="w-14 h-14 rounded-full bg-white flex flex-col items-center justify-center p-1.5 shrink-0">
+              <span class="font-brand font-extrabold text-[8px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
+              <span class="font-brand font-medium text-[7px] tracking-[0.22em] text-choco-soft mt-1 leading-none">cake</span>
             </div>
             <div>
               <span id="footer-store-name" class="font-brand font-extrabold text-lg text-white tracking-wider block">BROWMINIE CAKE</span>
@@ -775,7 +771,6 @@
           </p>
         </div>
 
-        <!-- Info dari Bio Instagram -->
         <div class="space-y-2.5">
           <h4 class="font-bold text-sm uppercase tracking-wider text-caramel-light">Informasi Pemesanan</h4>
           <p class="text-sm text-cream/85 flex items-center gap-2">
@@ -792,22 +787,23 @@
           </p>
         </div>
 
-        <!-- Kontak Langsung -->
         <div class="space-y-3">
           <h4 class="font-bold text-sm uppercase tracking-wider text-caramel-light">Hubungi & Ikuti Kami</h4>
           <p class="text-sm text-cream/75">DM Instagram atau chat WhatsApp untuk informasi lebih lanjut:</p>
           <div class="flex flex-wrap gap-2.5 pt-1">
             <a id="footer-wa-link" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer"
-               class="px-4 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-2 transition">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+               class="px-4 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 transition">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.475 1.331 4.991L2 22l5.184-1.359a9.927 9.927 0 0 0 4.847 1.26h.004c5.515 0 9.969-4.454 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05A9.903 9.903 0 0 0 12.031 2zm5.823 14.129c-.246.693-1.433 1.325-1.988 1.408-.51.076-1.156.108-1.865-.117-.431-.137-.984-.32-1.693-.626-2.979-1.286-4.924-4.285-5.073-4.483-.149-.199-1.211-1.611-1.211-3.073 0-1.462.766-2.181 1.038-2.478.272-.298.594-.372.792-.372.198 0 .396.002.569.01.183.009.428-.069.669.511.246.594.841 2.056.915 2.205.074.149.124.322.025.52-.099.198-.149.322-.297.495-.149.174-.312.388-.446.52-.149.149-.304.31-.131.607.173.298.769 1.269 1.651 2.055 1.135 1.012 2.092 1.326 2.389 1.475.297.149.471.124.644-.074.173-.198.743-.867.941-1.164.198-.298.396-.248.668-.149.272.099 1.733.817 2.03.966.297.149.495.223.569.347.075.124.075.718-.171 1.411z"/>
               </svg>
               <span>WhatsApp</span>
             </a>
             <a id="footer-ig-link" href="https://www.instagram.com/browminie.cake?rpxt=MW5zZGx0dDcycHF5cw==" target="_blank" rel="noopener noreferrer"
                class="px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-2 transition">
-              <svg class="w-4 h-4 text-[#E1306C]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              <svg class="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
               </svg>
               <span>@browminie.cake</span>
             </a>
@@ -817,18 +813,251 @@
 
       <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-cream/50 gap-2">
         <p>&copy; 2026 <span id="copyright-store-name">BROWMINIE CAKE</span>. Purwokerto Selatan.</p>
-        <button onclick="handleAdminNavClick()" class="text-caramel-light/80 hover:text-caramel-light underline">Halaman Rekap Pemilik Toko</button>
+        <button onclick="requestAdminAccess()" class="text-caramel-light/80 hover:text-caramel-light underline">Halaman Rekap Pemilik Toko</button>
       </div>
     </div>
   </footer>
 
-  <!-- ==================== LOGIKA REAL-TIME CLOUD SYNC & APLIKASI ==================== -->
+  <!-- ==================== LOGIKA JAVASCRIPT + FIREBASE REAL-TIME SYNC ==================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // 1. ILUSTRASI MENU DEFAULT
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let isCloudConnected = false;
+    let knownOrderIds = new Set();
+    let initialSnapshotDone = false;
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'browminie-cake-prod';
+
+    function getActiveFirebaseConfig() {
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try { return JSON.parse(__firebase_config); } catch (e) {}
+      }
+      const saved = localStorage.getItem('brw_custom_firebase_cfg');
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return null;
+    }
+
+    function updateCloudStatusUI(connected, labelText) {
+      isCloudConnected = connected;
+      const topPill = document.getElementById('cloud-sync-pill');
+      const topLabel = document.getElementById('cloud-sync-label');
+      const adminBadge = document.getElementById('admin-sync-badge');
+      const adminText = document.getElementById('admin-sync-text');
+  <!-- ==================== LOGIKA JAVASCRIPT + REALTIME DATABASE SYNC ==================== -->
+  <script>
+    // URL Firebase Realtime Database milik BROWMINIE CAKE (Otomatis aktif di semua perangkat!)
+    const DEFAULT_RTDB_URL = "https://browminie-cake-default-rtdb.asia-southeast1.firebasedatabase.app";
+    let activeRtdbUrl = localStorage.getItem('brw_custom_rtdb_url') || DEFAULT_RTDB_URL;
+    let isCloudConnected = false;
+    let knownOrderIds = new Set();
+    let initialSyncDone = false;
+
+    function updateCloudStatusUI(connected, labelText) {
+      isCloudConnected = connected;
+      const topPill = document.getElementById('cloud-sync-pill');
+      const topLabel = document.getElementById('cloud-sync-label');
+      const adminBadge = document.getElementById('admin-sync-badge');
+      const adminText = document.getElementById('admin-sync-text');
+      const setupBanner = document.getElementById('cloud-setup-banner');
+      const configTag = document.getElementById('cloud-config-status-tag');
+
+      if (connected) {
+        if (topPill) topPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold';
+        if (topLabel) topLabel.textContent = labelText || 'Cloud Real-Time Aktif';
+        if (adminBadge) adminBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold';
+        if (adminText) adminText.textContent = 'Real-Time Cloud Terhubung';
+        if (setupBanner) setupBanner.classList.add('hidden');
+        if (configTag) configTag.textContent = 'Status: Terhubung (Real-Time Aktif)';
+      } else {
+        if (topPill) topPill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-200 font-semibold';
+        if (topLabel) topLabel.textContent = labelText || 'Mode Perangkat Lokal';
+        if (adminBadge) adminBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold';
+        if (adminText) adminText.textContent = 'Menunggu Rules Database';
+        if (setupBanner) setupBanner.classList.remove('hidden');
+        if (configTag) configTag.textContent = 'Status: Belum Terhubung';
+      }
+    }
+
+    async function syncFromRealtimeDB() {
+      if (!activeRtdbUrl) return;
+      const baseUrl = activeRtdbUrl.replace(/\/$/, '');
+
+      try {
+        // 1. Ambil daftar pesanan secara real-time
+        const resOrders = await fetch(`${baseUrl}/browminie/orders.json`);
+        if (!resOrders.ok) {
+          updateCloudStatusUI(false, 'Cek Rules Firebase');
+          return;
+        }
+        updateCloudStatusUI(true, 'Cloud Real-Time Aktif');
+
+        const ordersObj = await resOrders.json();
+        const fetchedOrders = ordersObj ? Object.values(ordersObj) : [];
+        fetchedOrders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        let newlyArrivedOrder = null;
+        fetchedOrders.forEach(o => {
+          if (o && o.id) {
+            if (initialSyncDone && !knownOrderIds.has(o.id)) {
+              newlyArrivedOrder = o;
+            }
+            knownOrderIds.add(o.id);
+          }
+        });
+
+        window.orders = fetchedOrders;
+        localStorage.setItem('brw_orders_v1', JSON.stringify(fetchedOrders));
+        window.updateAdminBadges();
+
+        if (!document.getElementById('admin-view').classList.contains('hidden')) {
+          window.renderAdminDashboard();
+        }
+        if (newlyArrivedOrder) {
+          window.triggerNewOrderNotification(newlyArrivedOrder);
+        }
+        initialSyncDone = true;
+
+        // 2. Ambil data menu & foto jika sudah pernah disimpan ke cloud
+        const resMenus = await fetch(`${baseUrl}/browminie/menus.json`);
+        if (resMenus.ok) {
+          const menusObj = await resMenus.json();
+          if (menusObj && Object.keys(menusObj).length > 0) {
+            const fetchedMenus = Object.values(menusObj).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+            if (JSON.stringify(fetchedMenus) !== JSON.stringify(window.menus)) {
+              window.menus = fetchedMenus;
+              localStorage.setItem('brw_menus_v1', JSON.stringify(fetchedMenus));
+              window.applyStoreSettingsUI();
+              window.renderMenuGrid();
+              if (!document.getElementById('admin-view').classList.contains('hidden')) {
+                window.renderAdminMenuList();
+              }
+            }
+          }
+        }
+
+        // 3. Ambil pengaturan toko jika tersedia di cloud
+        const resSettings = await fetch(`${baseUrl}/browminie/settings.json`);
+        if (resSettings.ok) {
+          const settingsData = await resSettings.json();
+          if (settingsData && settingsData.storeName) {
+            window.storeSettings = { ...window.storeSettings, ...settingsData };
+            localStorage.setItem('brw_settings_v1', JSON.stringify(window.storeSettings));
+            window.applyStoreSettingsUI();
+          }
+        }
+      } catch (err) {
+        console.error('Sync error:', err);
+        updateCloudStatusUI(false, 'Koneksi Cloud Terputus');
+      }
+    }
+
+    window.cloudSaveOrder = async (orderObj) => {
+      if (!activeRtdbUrl) return false;
+      const baseUrl = activeRtdbUrl.replace(/\/$/, '');
+      try {
+        knownOrderIds.add(orderObj.id);
+        const res = await fetch(`${baseUrl}/browminie/orders/${orderObj.id}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderObj)
+        });
+        return res.ok;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    window.cloudUpdateOrderStatus = async (orderId, newStatus) => {
+      if (!activeRtdbUrl) return;
+      const baseUrl = activeRtdbUrl.replace(/\/$/, '');
+      try {
+        await fetch(`${baseUrl}/browminie/orders/${orderId}.json`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+      } catch (e) {}
+    };
+
+    window.cloudClearAllOrders = async () => {
+      if (!activeRtdbUrl) return;
+      const baseUrl = activeRtdbUrl.replace(/\/$/, '');
+      try {
+        await fetch(`${baseUrl}/browminie/orders.json`, { method: 'DELETE' });
+      } catch (e) {}
+    };
+
+    window.cloudSaveMenu = async (menuObj) => {
+      if (!activeRtdbUrl) return;
+      const baseUrl = activeRtdbUrl.replace(/\/$/, '');
+      try {
+        await fetch(`${baseUrl}/browminie/menus/${menuObj.id}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(menuObj)
+        });
+      } catch (e) {}
+    };
+
+    window.cloudDeleteMenu = async (menuId) => {
+      if (!activeRtdbUrl) return;
+      const baseUrl = activeRtdbUrl.replace(/\/$/, '');
+      try {
+        await fetch(`${baseUrl}/browminie/menus/${menuId}.json`, { method: 'DELETE' });
+      } catch (e) {}
+    };
+
+    window.cloudSaveSettings = async (settingsObj) => {
+      if (!activeRtdbUrl) return;
+      const baseUrl = activeRtdbUrl.replace(/\/$/, '');
+      try {
+        await fetch(`${baseUrl}/browminie/settings.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settingsObj)
+        });
+      } catch (e) {}
+    };
+
+    window.handleSaveFirebaseConfig = (event) => {
+      event.preventDefault();
+      const raw = document.getElementById('firebase-config-input').value.trim();
+      if (!raw) return;
+      const urlMatch = raw.match(/https:\/\/[^\s"'`]+firebasedatabase\.app/);
+      if (urlMatch) {
+        activeRtdbUrl = urlMatch[0];
+        localStorage.setItem('brw_custom_rtdb_url', activeRtdbUrl);
+        window.showToast('URL Database tersimpan! Menghubungkan...');
+        syncFromRealtimeDB();
+      } else {
+        window.showToast('Masukkan URL Firebase Realtime Database yang valid.');
+      }
+    };
+
+    window.clearCustomFirebaseConfig = () => {
+      localStorage.removeItem('brw_custom_rtdb_url');
+      activeRtdbUrl = DEFAULT_RTDB_URL;
+      syncFromRealtimeDB();
+      window.showToast('Kembali menggunakan URL Database utama BROWMINIE CAKE.');
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const cfgInput = document.getElementById('firebase-config-input');
+      if (cfgInput) cfgInput.value = activeRtdbUrl;
+      syncFromRealtimeDB();
+      // Cek pesanan baru secara berkala setiap 4 detik agar notifikasi bel langsung berbunyi
+      setInterval(syncFromRealtimeDB, 4000);
+    });
+  </script>
+
+  <script>
     function createBrowniesIllustration(type) {
       if (type === 'sekat') {
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
@@ -957,180 +1186,60 @@
       adminPin: '1234'
     };
 
-    // 2. STATE APLIKASI
-    let menus = [...DEFAULT_MENUS];
-    let orders = [];
-    let storeSettings = { ...DEFAULT_SETTINGS };
+    window.menus = JSON.parse(localStorage.getItem('brw_menus_v1')) || DEFAULT_MENUS;
+    window.orders = JSON.parse(localStorage.getItem('brw_orders_v1')) || [];
+    window.storeSettings = { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem('brw_settings_v1')) || {}) };
     let cart = {};
     let selectedToppings = {};
     let isAdminUnlocked = false;
-    let knownOrderIds = new Set();
-    let isInitialOrdersLoaded = false;
 
-    // Firebase Instances
-    let db = null;
-    let auth = null;
-    let currentUser = null;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'browminie-cake-app';
-
-    // 3. FORMAT RUPIAH & SUARA NOTIFIKASI
     function formatRupiah(angka) {
       return 'Rp ' + Number(angka).toLocaleString('id-ID');
     }
 
-    async function playNotificationBell() {
+    // Suara bel notifikasi saat ada pesanan baru
+    function playNotificationBell() {
       try {
-        if (typeof Tone !== 'undefined') {
-          await Tone.start();
-          const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-          const now = Tone.now();
-          synth.triggerAttackRelease("C5", "8n", now);
-          synth.triggerAttackRelease("E5", "8n", now + 0.14);
-          synth.triggerAttackRelease("G5", "4n", now + 0.28);
-        }
-      } catch (e) {
-        // Abaikan jika browser memblokir autoplay audio sebelum interaksi
-      }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const playTone = (freq, startTime, duration) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, startTime);
+          gain.gain.setValueAtTime(0.25, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + duration);
+        };
+        const now = ctx.currentTime;
+        playTone(880, now, 0.35);
+        playTone(1174.66, now + 0.18, 0.55);
+      } catch (e) {}
     }
 
-    function sendBrowserPushNotification(title, body) {
-      if ("Notification" in window && Notification.permission === "granted") {
-        try {
-          new Notification(title, { body });
-        } catch (e) {}
-      }
-    }
-
-    window.testNotificationSound = function () {
+    window.triggerNewOrderNotification = (orderObj) => {
       playNotificationBell();
-      showToast('Suara bel & notifikasi pesanan aktif!');
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
+      const alertBox = document.getElementById('live-order-alert');
+      const alertText = document.getElementById('live-order-alert-text');
+      if (alertBox && alertText) {
+        alertText.textContent = `${orderObj.customerName} memesan (${formatRupiah(orderObj.totalPrice)}) untuk tgl ${orderObj.deliveryDate}`;
+        alertBox.classList.remove('hidden');
       }
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Pesanan Baru — BROWMINIE CAKE', {
+          body: `${orderObj.customerName} memesan senilai ${formatRupiah(orderObj.totalPrice)} (Jadwal: ${orderObj.deliveryDate})`
+        });
+      }
+      lucide.createIcons();
     };
 
-    window.dismissOrderBanner = function () {
-      document.getElementById('realtime-order-banner').classList.add('hidden');
-    };
-
-    function triggerIncomingOrderAlert(order) {
-      // 1. Bunyikan bel notifikasi
-      playNotificationBell();
-
-      // 2. Tampilkan banner notifikasi di layar
-      const banner = document.getElementById('realtime-order-banner');
-      const itemsSummary = order.items.map(i => `${i.qty}x ${i.name}`).join(', ');
-      document.getElementById('banner-order-title').textContent = `${order.customerName} (#${order.id})`;
-      document.getElementById('banner-order-detail').textContent = `${itemsSummary} • ${formatRupiah(order.totalPrice)}`;
-      banner.classList.remove('hidden');
-
-      // 3. Notifikasi sistem browser/HP jika diizinkan
-      sendBrowserPushNotification(
-        `Pesanan Baru BROWMINIE CAKE (#${order.id})`,
-        `${order.customerName} memesan ${itemsSummary} (${formatRupiah(order.totalPrice)})`
-      );
+    function dismissOrderAlert() {
+      document.getElementById('live-order-alert').classList.add('hidden');
     }
 
-    // 4. INISIALISASI FIREBASE REAL-TIME SYNC (ANTAR SEMUA PERANGKAT)
-    async function initRealtimeSync() {
-      try {
-        if (typeof __firebase_config === 'undefined') {
-          throw new Error('Konfigurasi cloud belum tersedia');
-        }
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-        currentUser = auth.currentUser;
-        if (!currentUser) return;
-
-        // A. Dengarkan Perubahan Pengaturan Toko secara Real-Time
-        const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'storeConfig');
-        onSnapshot(settingsRef, (snap) => {
-          if (snap.exists()) {
-            storeSettings = { ...DEFAULT_SETTINGS, ...snap.data() };
-          } else {
-            setDoc(settingsRef, DEFAULT_SETTINGS).catch(() => {});
-          }
-          applyStoreSettingsUI();
-        }, (err) => console.error('Settings sync error:', err));
-
-        // B. Dengarkan Perubahan Daftar Menu & Foto secara Real-Time
-        const menusCol = collection(db, 'artifacts', appId, 'public', 'data', 'menus');
-        onSnapshot(menusCol, async (snapshot) => {
-          if (snapshot.empty) {
-            // Seed menu bawaan sekali saat pertama kali dijalankan
-            for (const m of DEFAULT_MENUS) {
-              await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', m.id), m);
-            }
-            return;
-          }
-          const fetchedMenus = [];
-          snapshot.forEach((docSnap) => {
-            fetchedMenus.push(docSnap.data());
-          });
-          fetchedMenus.sort((a, b) => (a.sortOrder || 99) - (b.sortOrder || 99));
-          menus = fetchedMenus;
-
-          menus.forEach(m => {
-            if (!selectedToppings[m.id]) {
-              selectedToppings[m.id] = (m.toppings && m.toppings.length > 0) ? m.toppings[0] : 'Original';
-            }
-          });
-
-          applyStoreSettingsUI();
-          renderMenuGrid();
-          if (isAdminUnlocked) renderAdminMenuList();
-        }, (err) => console.error('Menus sync error:', err));
-
-        // C. Dengarkan Pesanan Masuk secara Real-Time dari Seluruh Perangkat
-        const ordersCol = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
-        onSnapshot(ordersCol, (snapshot) => {
-          const fetchedOrders = [];
-          snapshot.forEach((docSnap) => {
-            fetchedOrders.push(docSnap.data());
-          });
-          // Urutkan terbaru di atas berdasarkan timestamp
-          fetchedOrders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-          // Deteksi pesanan baru yang masuk dari perangkat pembeli
-          if (isInitialOrdersLoaded) {
-            fetchedOrders.forEach(ord => {
-              if (!knownOrderIds.has(ord.id)) {
-                knownOrderIds.add(ord.id);
-                // Munculkan notifikasi suara & banner jika pemilik membuka halaman rekap atau saat order baru masuk
-                if (isAdminUnlocked) {
-                  triggerIncomingOrderAlert(ord);
-                }
-              }
-            });
-          } else {
-            fetchedOrders.forEach(ord => knownOrderIds.add(ord.id));
-            isInitialOrdersLoaded = true;
-          }
-
-          orders = fetchedOrders;
-          updateAdminBadges();
-          if (isAdminUnlocked) {
-            renderAdminDashboard();
-          }
-        }, (err) => console.error('Orders sync error:', err));
-
-      } catch (error) {
-        console.warn('Menjalankan mode standar:', error);
-        applyStoreSettingsUI();
-        renderMenuGrid();
-        updateAdminBadges();
-      }
-    }
-
-    // 5. INISIALISASI DOM
     window.addEventListener('DOMContentLoaded', () => {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
@@ -1144,38 +1253,50 @@
         dateInput.value = defaultDateStr;
       }
 
-      menus.forEach(m => {
+      window.menus.forEach(m => {
         selectedToppings[m.id] = (m.toppings && m.toppings.length > 0) ? m.toppings[0] : 'Original';
       });
 
-      applyStoreSettingsUI();
-      renderMenuGrid();
+      window.applyStoreSettingsUI();
+      window.renderMenuGrid();
       updateCartUI();
-      updateAdminBadges();
+      window.updateAdminBadges();
       lucide.createIcons();
-
-      // Mulai sinkronisasi real-time antar perangkat
-      initRealtimeSync();
     });
 
-    function applyStoreSettingsUI() {
-      document.title = `${storeSettings.storeName} — Brownies & Fudgy Brownies`;
-      
+    // Dengarkan perubahan localStorage antar tab pada perangkat yang sama
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'brw_orders_v1' && e.newValue) {
+        const updated = JSON.parse(e.newValue);
+        if (updated.length > window.orders.length) {
+          window.triggerNewOrderNotification(updated[0]);
+        }
+        window.orders = updated;
+        window.updateAdminBadges();
+        if (!document.getElementById('admin-view').classList.contains('hidden')) {
+          window.renderAdminDashboard();
+        }
+      }
+    });
+
+    window.applyStoreSettingsUI = function() {
+      document.title = `${window.storeSettings.storeName} — Brownies & Fudgy Brownies`;
+
       const setElText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
       const setElHref = (id, val) => { const el = document.getElementById(id); if (el) el.href = val; };
       const setElVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
 
-      setElText('header-store-name', storeSettings.storeName);
-      setElText('footer-store-name', storeSettings.storeName);
-      setElText('copyright-store-name', storeSettings.storeName);
+      setElText('header-store-name', window.storeSettings.storeName);
+      setElText('footer-store-name', window.storeSettings.storeName);
+      setElText('copyright-store-name', window.storeSettings.storeName);
 
-      setElText('topbar-status', storeSettings.status);
-      setElText('topbar-h3', storeSettings.orderRule);
-      setElText('topbar-location', storeSettings.location);
-      setElText('topbar-delivery', storeSettings.deliveryInfo);
+      setElText('topbar-status', window.storeSettings.status);
+      setElText('topbar-h3', window.storeSettings.orderRule);
+      setElText('topbar-location', window.storeSettings.location);
+      setElText('topbar-delivery', window.storeSettings.deliveryInfo);
 
-      const waUrl = `https://wa.me/${storeSettings.whatsapp}?text=${encodeURIComponent('Halo ' + storeSettings.storeName + ', saya ingin bertanya seputar pemesanan brownies.')}`;
-      const igUrl = storeSettings.instagram;
+      const waUrl = `https://wa.me/${window.storeSettings.whatsapp}?text=${encodeURIComponent('Halo ' + window.storeSettings.storeName + ', saya ingin bertanya seputar pemesanan brownies.')}`;
+      const igUrl = window.storeSettings.instagram;
 
       setElHref('header-wa-link', waUrl);
       setElHref('hero-wa-btn', waUrl);
@@ -1186,29 +1307,27 @@
       setElHref('footer-ig-link', igUrl);
 
       const heroImg = document.getElementById('hero-featured-img');
-      if (heroImg && menus.length > 0) {
-        heroImg.src = menus[0].image;
+      if (heroImg && window.menus.length > 0) {
+        heroImg.src = window.menus[0].image;
       }
 
-      setElVal('setting-store-name', storeSettings.storeName);
-      setElVal('setting-store-status', storeSettings.status);
-      setElVal('setting-store-h3', storeSettings.orderRule);
-      setElVal('setting-store-location', storeSettings.location);
-      setElVal('setting-store-wa', storeSettings.whatsapp);
-      setElVal('setting-store-ig', storeSettings.instagram);
-      setElVal('setting-admin-pin', storeSettings.adminPin || '1234');
-    }
-
-    // 6. RENDER KATALOG MENU
-    window.selectMenuTopping = function (menuId, topping) {
-      selectedToppings[menuId] = topping;
+      setElVal('setting-store-name', window.storeSettings.storeName);
+      setElVal('setting-admin-pin', window.storeSettings.adminPin || '1234');
+      setElVal('setting-store-status', window.storeSettings.status);
+      setElVal('setting-store-h3', window.storeSettings.orderRule);
+      setElVal('setting-store-wa', window.storeSettings.whatsapp);
+      setElVal('setting-store-ig', window.storeSettings.instagram);
     };
 
-    window.renderMenuGrid = function () {
+    function selectMenuTopping(menuId, topping) {
+      selectedToppings[menuId] = topping;
+    }
+
+    window.renderMenuGrid = function() {
       const grid = document.getElementById('menu-grid');
       const keyword = document.getElementById('search-menu-input').value.toLowerCase().trim();
 
-      const filtered = menus.filter(item =>
+      const filtered = window.menus.filter(item =>
         item.name.toLowerCase().includes(keyword) || item.desc.toLowerCase().includes(keyword)
       );
 
@@ -1286,9 +1405,8 @@
       lucide.createIcons();
     };
 
-    // 7. LOGIKA KERANJANG BELANJA
-    window.addSelectedToCart = function (menuId) {
-      const menu = menus.find(m => m.id === menuId);
+    function addSelectedToCart(menuId) {
+      const menu = window.menus.find(m => m.id === menuId);
       if (!menu) return;
 
       const topping = selectedToppings[menuId] || (menu.toppings && menu.toppings[0]) || 'Original';
@@ -1308,25 +1426,25 @@
       }
 
       showToast(`"${menu.name}" (${topping}) ditambahkan!`);
-      renderMenuGrid();
+      window.renderMenuGrid();
       updateCartUI();
-    };
+    }
 
-    window.updateCartItemQty = function (cartKey, delta) {
+    function updateCartItemQty(cartKey, delta) {
       if (!cart[cartKey]) return;
       cart[cartKey].qty += delta;
       if (cart[cartKey].qty <= 0) {
         delete cart[cartKey];
       }
-      renderMenuGrid();
+      window.renderMenuGrid();
       updateCartUI();
-    };
+    }
 
-    window.clearCart = function () {
+    function clearCart() {
       cart = {};
-      renderMenuGrid();
+      window.renderMenuGrid();
       updateCartUI();
-    };
+    }
 
     function updateCartUI() {
       const entries = Object.values(cart);
@@ -1398,18 +1516,18 @@
       lucide.createIcons();
     }
 
-    window.openCartDrawer = function () {
+    function openCartDrawer() {
       document.getElementById('cart-drawer-backdrop').classList.remove('hidden');
       document.getElementById('cart-drawer').classList.remove('translate-x-full');
       updateCartUI();
-    };
+    }
 
-    window.closeCartDrawer = function () {
+    function closeCartDrawer() {
       document.getElementById('cart-drawer-backdrop').classList.add('hidden');
       document.getElementById('cart-drawer').classList.add('translate-x-full');
-    };
+    }
 
-    window.toggleAddressField = function () {
+    function toggleAddressField() {
       const method = document.querySelector('input[name="deliveryMethod"]:checked').value;
       const label = document.getElementById('address-label');
       const textarea = document.getElementById('order-notes');
@@ -1420,20 +1538,21 @@
       } else {
         label.textContent = 'Alamat Pengiriman / Titik COD & Catatan *';
         textarea.required = true;
-        textarea.placeholder = 'Masukkan alamat lengkap pengiriman / titik COD area Purwokerto...';
+        textarea.placeholder = 'Masukkan alamat lengkap pengiriman & catatan tambahan...';
       }
-    };
+    }
 
-    // 8. SUBMIT PESANAN -> SINKRON REAL-TIME + LANGSUNG BUKA NOTIFIKASI KE WHATSAPP ADMIN
-    window.submitOrder = async function (event) {
+    async function submitOrder(event) {
       event.preventDefault();
 
       const entries = Object.values(cart);
       if (entries.length === 0) return;
 
       const submitBtn = document.getElementById('submit-order-btn');
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>Menyimpan Pesanan...</span>';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-70');
+      }
 
       let totalPrice = 0;
       const items = entries.map(i => {
@@ -1471,29 +1590,26 @@
         status: 'Baru'
       };
 
-      knownOrderIds.add(orderId);
+      // Simpan ke Cloud Real-Time jika terhubung, serta ke localStorage
+      if (window.cloudSaveOrder) {
+        await window.cloudSaveOrder(newOrder);
+      }
+      window.orders.unshift(newOrder);
+      localStorage.setItem('brw_orders_v1', JSON.stringify(window.orders));
 
-      // Simpan ke Cloud Real-Time agar langsung muncul di device pemilik toko
-      if (db && currentUser) {
-        try {
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), newOrder);
-        } catch (err) {
-          console.error('Gagal menyimpan ke cloud:', err);
-        }
-      } else {
-        orders.unshift(newOrder);
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-70');
       }
 
       clearCart();
       closeCartDrawer();
       document.getElementById('checkout-form').reset();
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4 text-caramel-light"></i><span>Pesan & Kirim Notifikasi ke WA Admin</span>';
+      window.updateAdminBadges();
 
-      // Format pesan WhatsApp otomatis ke nomor pemilik toko
       const itemsText = items.map(i => `• ${i.name} [${i.topping}] (${i.qty}x) = ${formatRupiah(i.price * i.qty)}`).join('\n');
       const waMessage =
-`🔔 *PESANAN BARU - ${storeSettings.storeName}*
+`🔔 *PESANAN BARU - ${window.storeSettings.storeName}*
 
 *No. Order:* ${orderId}
 *Nama Pemesan:* ${customerName}
@@ -1509,7 +1625,7 @@ ${itemsText}
 
 Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
 
-      const waLink = `https://wa.me/${storeSettings.whatsapp}?text=${encodeURIComponent(waMessage)}`;
+      const waLink = `https://wa.me/${window.storeSettings.whatsapp}?text=${encodeURIComponent(waMessage)}`;
 
       document.getElementById('modal-customer-name').textContent = customerName;
       document.getElementById('modal-order-id').textContent = '#' + orderId;
@@ -1524,91 +1640,71 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       lucide.createIcons();
+    }
 
-      // Otomatis arahkan ke WhatsApp admin agar pemilik toko langsung menerima notifikasi chat di HP
-      setTimeout(() => {
-        window.open(waLink, '_blank');
-      }, 600);
-    };
-
-    window.closeSuccessModal = function () {
+    function closeSuccessModal() {
       const modal = document.getElementById('success-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
-    };
+    }
 
-    // 9. KEAMANAN PIN PEMILIK TOKO & NAVIGASI HALAMAN
-    window.handleAdminNavClick = function () {
+    // ==================== AKSES PIN PEMILIK TOKO ====================
+    function requestAdminAccess() {
       if (isAdminUnlocked) {
         switchView('admin');
-      } else {
-        const pinModal = document.getElementById('pin-modal');
-        document.getElementById('pin-input').value = '';
-        document.getElementById('pin-error-msg').classList.add('hidden');
-        pinModal.classList.remove('hidden');
-        pinModal.classList.add('flex');
-        setTimeout(() => document.getElementById('pin-input').focus(), 100);
+        return;
       }
-    };
-
-    window.closePinModal = function () {
-      const pinModal = document.getElementById('pin-modal');
-      pinModal.classList.add('hidden');
-      pinModal.classList.remove('flex');
-    };
-
-    window.verifyAdminPin = function (event) {
-      event.preventDefault();
-      const inputPin = document.getElementById('pin-input').value.trim();
-      const validPin = storeSettings.adminPin || '1234';
-
-      if (inputPin === validPin) {
-        isAdminUnlocked = true;
-        closePinModal();
-        updateLockIcons();
-        switchView('admin');
-        // Minta izin notifikasi browser saat pemilik membuka dashboard
-        if ("Notification" in window && Notification.permission === "default") {
-          Notification.requestPermission();
-        }
-        showToast('Akses pemilik toko terbuka & notifikasi aktif!');
-      } else {
-        document.getElementById('pin-error-msg').classList.remove('hidden');
-        document.getElementById('pin-input').value = '';
-        document.getElementById('pin-input').focus();
-      }
-    };
-
-    window.lockAdminAndReturn = function () {
-      isAdminUnlocked = false;
-      updateLockIcons();
-      switchView('customer');
-      showToast('Halaman rekap pemilik telah dikunci.');
-    };
-
-    function updateLockIcons() {
-      const iconName = isAdminUnlocked ? 'unlock' : 'lock';
-      const desktopIcon = document.getElementById('admin-lock-icon');
-      const mobileIcon = document.getElementById('admin-lock-icon-mobile');
-      if (desktopIcon) desktopIcon.setAttribute('data-lucide', iconName);
-      if (mobileIcon) mobileIcon.setAttribute('data-lucide', iconName);
+      const modal = document.getElementById('pin-modal');
+      const input = document.getElementById('pin-input');
+      const err = document.getElementById('pin-error-msg');
+      input.value = '';
+      err.classList.add('hidden');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => input.focus(), 100);
       lucide.createIcons();
     }
 
-    window.switchView = function (view) {
+    function closePinModal() {
+      const modal = document.getElementById('pin-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function verifyAdminPin(event) {
+      event.preventDefault();
+      const entered = document.getElementById('pin-input').value.trim();
+      const validPin = window.storeSettings.adminPin || '1234';
+
+      if (entered === validPin) {
+        isAdminUnlocked = true;
+        closePinModal();
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+        switchView('admin');
+        showToast('Akses Pemilik Toko berhasil dibuka!');
+      } else {
+        document.getElementById('pin-error-msg').classList.remove('hidden');
+      }
+    }
+
+    function lockAdminAndExit() {
+      isAdminUnlocked = false;
+      switchView('customer');
+      showToast('Halaman Rekap Pemilik dikunci kembali.');
+    }
+
+    function switchView(view) {
       const customerView = document.getElementById('customer-view');
       const adminView = document.getElementById('admin-view');
       const floatingBar = document.getElementById('floating-cart-bar');
 
       if (view === 'admin') {
-        if (!isAdminUnlocked) {
-          handleAdminNavClick();
-          return;
-        }
         customerView.classList.add('hidden');
         adminView.classList.remove('hidden');
         floatingBar.classList.add('hidden');
-        renderAdminDashboard();
+        window.renderAdminDashboard();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         adminView.classList.add('hidden');
@@ -1616,48 +1712,88 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
         updateCartUI();
       }
       lucide.createIcons();
-    };
+    }
 
-    window.scrollToSection = function (id) {
+    function scrollToSection(id) {
       setTimeout(() => {
         const el = document.getElementById(id);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       }, 50);
-    };
-
-    // 10. HALAMAN REKAP PEMILIK & SINKRONISASI CLOUD
-    function updateAdminBadges() {
-      const newCount = orders.filter(o => o.status === 'Baru').length;
-      const displayCount = newCount > 0 ? newCount : orders.length;
-      document.getElementById('admin-badge-count').textContent = displayCount;
-      document.getElementById('admin-badge-mobile').textContent = displayCount;
     }
 
-    function renderAdminDashboard() {
-      const totalOrders = orders.length;
+    window.updateAdminBadges = function() {
+      const newCount = window.orders.filter(o => o.status === 'Baru').length;
+      const displayCount = newCount > 0 ? newCount : window.orders.length;
+      const b1 = document.getElementById('admin-badge-count');
+      const b2 = document.getElementById('admin-badge-mobile');
+      if (b1) b1.textContent = displayCount;
+      if (b2) b2.textContent = displayCount;
+    };
+
+    window.renderAdminDashboard = function() {
+      const totalOrders = window.orders.length;
       let totalItems = 0;
       let totalRevenue = 0;
+      const scheduleMap = {};
 
-      orders.forEach(o => {
+      window.orders.forEach(o => {
         totalRevenue += Number(o.totalPrice);
         o.items.forEach(i => totalItems += Number(i.qty));
+
+        if (o.status !== 'Selesai') {
+          const dt = o.deliveryDate || 'Tanpa Tanggal';
+          if (!scheduleMap[dt]) scheduleMap[dt] = { totalPcs: 0, orderCount: 0, breakdown: {} };
+          scheduleMap[dt].orderCount += 1;
+          o.items.forEach(i => {
+            scheduleMap[dt].totalPcs += Number(i.qty);
+            scheduleMap[dt].breakdown[i.name] = (scheduleMap[dt].breakdown[i.name] || 0) + Number(i.qty);
+          });
+        }
       });
 
       document.getElementById('stat-total-orders').textContent = totalOrders;
       document.getElementById('stat-total-items').innerHTML = `${totalItems} <span class="text-sm font-normal text-choco-soft">pcs</span>`;
       document.getElementById('stat-total-revenue').textContent = formatRupiah(totalRevenue);
 
-      renderAdminOrders();
-      renderAdminMenuList();
-      updateAdminBadges();
-    }
+      // Render ringkasan produksi per tanggal kirim/ambil
+      const schedGrid = document.getElementById('production-schedule-grid');
+      const sortedDates = Object.keys(scheduleMap).sort();
+      if (sortedDates.length === 0) {
+        schedGrid.innerHTML = `<p class="text-xs text-choco-soft italic col-span-full">Belum ada jadwal pesanan aktif yang perlu dibuat.</p>`;
+      } else {
+        schedGrid.innerHTML = sortedDates.map(dt => {
+          const info = scheduleMap[dt];
+          const details = Object.entries(info.breakdown).map(([name, qty]) => `${qty}x ${name}`).join(' • ');
+          return `
+            <div class="bg-cream p-4 rounded-2xl border border-cream-warm space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-choco flex items-center gap-1">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-caramel"></i> ${dt}
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-choco text-cream text-[11px] font-bold">${info.totalPcs} pcs (${info.orderCount} order)</span>
+              </div>
+              <p class="text-[11px] text-choco-soft leading-snug pt-1">${details}</p>
+            </div>
+          `;
+        }).join('');
+      }
 
-    window.renderAdminOrders = function () {
+      window.renderAdminOrders();
+      window.renderAdminMenuList();
+      window.updateAdminBadges();
+    };
+
+    window.renderAdminOrders = function() {
       const tbody = document.getElementById('admin-orders-tbody');
       const emptyState = document.getElementById('empty-orders-state');
       const statusFilter = document.getElementById('filter-order-status').value;
+      const dateFilter = document.getElementById('filter-order-date').value;
 
-      const filtered = orders.filter(o => statusFilter === 'Semua' || o.status === statusFilter);
+      const filtered = window.orders.filter(o => {
+        const matchStatus = statusFilter === 'Semua' || o.status === statusFilter;
+        const matchDate = !dateFilter || o.deliveryDate === dateFilter;
+        return matchStatus && matchDate;
+      });
 
       if (filtered.length === 0) {
         tbody.innerHTML = '';
@@ -1677,7 +1813,7 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
         if (order.status === 'Selesai') statusStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200';
 
         const cleanPhone = order.customerPhone.replace(/^0/, '62').replace(/[^0-9]/g, '');
-        const customerWaLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Halo Kak ${order.customerName}, pesanan brownies (${order.id}) di ${storeSettings.storeName} sedang kami proses ya.`)}`;
+        const customerWaLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Halo Kak ${order.customerName}, pesanan brownies (${order.id}) untuk tanggal ${order.deliveryDate} di ${window.storeSettings.storeName} sedang kami proses ya.`)}`;
 
         return `
           <tr class="hover:bg-cream/50 transition align-top">
@@ -1717,25 +1853,20 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       lucide.createIcons();
     };
 
-    window.updateOrderStatus = async function (orderId, newStatus) {
-      if (db && currentUser) {
-        try {
-          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), { status: newStatus });
-          showToast(`Status #${orderId} diperbarui ke "${newStatus}"`);
-        } catch (e) {
-          console.error(e);
+    async function updateOrderStatus(orderId, newStatus) {
+      const idx = window.orders.findIndex(o => o.id === orderId);
+      if (idx !== -1) {
+        window.orders[idx].status = newStatus;
+        localStorage.setItem('brw_orders_v1', JSON.stringify(window.orders));
+        if (window.cloudUpdateOrderStatus) {
+          await window.cloudUpdateOrderStatus(orderId, newStatus);
         }
-      } else {
-        const idx = orders.findIndex(o => o.id === orderId);
-        if (idx !== -1) {
-          orders[idx].status = newStatus;
-          renderAdminOrders();
-          updateAdminBadges();
-        }
+        window.renderAdminDashboard();
+        showToast(`Status #${orderId} diubah menjadi "${newStatus}"`);
       }
-    };
+    }
 
-    window.switchAdminTab = function (tab) {
+    function switchAdminTab(tab) {
       const ordersTab = document.getElementById('admin-tab-orders');
       const productsTab = document.getElementById('admin-tab-products');
       const ordersBtn = document.getElementById('tab-orders-btn');
@@ -1755,7 +1886,7 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
         productsBtn.className = 'pb-3.5 text-sm font-bold border-b-2 border-choco text-choco-dark transition';
         ordersBtn.className = 'pb-3.5 text-sm font-semibold border-b-2 border-transparent text-choco-soft hover:text-choco-dark transition';
       }
-    };
+    }
 
     function compressImageFile(file, callback) {
       const reader = new FileReader();
@@ -1783,33 +1914,29 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       reader.readAsDataURL(file);
     }
 
-    window.handleReplaceMenuPhoto = function (menuId, inputEl) {
+    function handleReplaceMenuPhoto(menuId, inputEl) {
       const file = inputEl.files && inputEl.files[0];
       if (!file) return;
 
       compressImageFile(file, async (dataUrl) => {
-        if (db && currentUser) {
-          try {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', menuId), { image: dataUrl });
-            showToast('Foto menu berhasil diperbarui ke semua perangkat!');
-          } catch (e) {
-            console.error(e);
+        const idx = window.menus.findIndex(m => m.id === menuId);
+        if (idx !== -1) {
+          window.menus[idx].image = dataUrl;
+          localStorage.setItem('brw_menus_v1', JSON.stringify(window.menus));
+          if (window.cloudSaveMenu) {
+            await window.cloudSaveMenu(window.menus[idx]);
           }
-        } else {
-          const idx = menus.findIndex(m => m.id === menuId);
-          if (idx !== -1) {
-            menus[idx].image = dataUrl;
-            applyStoreSettingsUI();
-            renderMenuGrid();
-            renderAdminMenuList();
-          }
+          window.applyStoreSettingsUI();
+          window.renderMenuGrid();
+          window.renderAdminMenuList();
+          showToast(`Foto "${window.menus[idx].name}" berhasil diperbarui!`);
         }
       });
-    };
+    }
 
-    function renderAdminMenuList() {
+    window.renderAdminMenuList = function() {
       const container = document.getElementById('admin-menu-list');
-      container.innerHTML = menus.map(m => `
+      container.innerHTML = window.menus.map(m => `
         <div class="bg-cream p-4 rounded-2xl border border-cream-warm flex items-center gap-4">
           <img src="${m.image}" alt="${m.name}" class="w-20 h-20 rounded-xl object-cover border border-cream-warm shrink-0 bg-choco-dark" />
           <div class="min-w-0 flex-1 space-y-1.5">
@@ -1829,9 +1956,9 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
         </div>
       `).join('');
       lucide.createIcons();
-    }
+    };
 
-    window.handleAddMenu = function (event) {
+    function handleAddMenu(event) {
       event.preventDefault();
       const name = document.getElementById('new-menu-name').value.trim();
       const price = Number(document.getElementById('new-menu-price').value);
@@ -1844,27 +1971,26 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
         : ['Mix Topping', 'Chocochips', 'Keju'];
 
       const finalizeAdd = async (imageUrl) => {
-        const newId = 'brw-menu-' + Date.now();
         const newMenu = {
-          id: newId,
+          id: 'brw-menu-' + Date.now(),
           name,
           price,
           desc,
           toppings,
           image: imageUrl,
           badge: 'Menu Baru',
-          sortOrder: menus.length + 1
+          sortOrder: window.menus.length + 1
         };
-
-        if (db && currentUser) {
-          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', newId), newMenu);
-        } else {
-          menus.push(newMenu);
-          renderMenuGrid();
-          renderAdminMenuList();
+        window.menus.push(newMenu);
+        selectedToppings[newMenu.id] = toppings[0];
+        localStorage.setItem('brw_menus_v1', JSON.stringify(window.menus));
+        if (window.cloudSaveMenu) {
+          await window.cloudSaveMenu(newMenu);
         }
 
         event.target.reset();
+        window.renderMenuGrid();
+        window.renderAdminMenuList();
         showToast(`Menu "${name}" berhasil ditambahkan!`);
       };
 
@@ -1873,49 +1999,47 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       } else {
         finalizeAdd(createBrowniesIllustration('sekat'));
       }
-    };
+    }
 
-    window.deleteMenu = async function (menuId) {
-      if (db && currentUser) {
-        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', menuId));
-      } else {
-        menus = menus.filter(m => m.id !== menuId);
-        renderMenuGrid();
-        renderAdminMenuList();
+    async function deleteMenu(menuId) {
+      window.menus = window.menus.filter(m => m.id !== menuId);
+      localStorage.setItem('brw_menus_v1', JSON.stringify(window.menus));
+      if (window.cloudDeleteMenu) {
+        await window.cloudDeleteMenu(menuId);
       }
+      window.renderMenuGrid();
+      window.renderAdminMenuList();
       showToast('Menu berhasil dihapus');
-    };
+    }
 
-    window.handleSaveStoreSettings = async function (event) {
+    async function handleSaveStoreSettings(event) {
       event.preventDefault();
-      const updatedSettings = {
+      const newPin = document.getElementById('setting-admin-pin').value.trim();
+      window.storeSettings = {
+        ...window.storeSettings,
         storeName: document.getElementById('setting-store-name').value.trim(),
+        adminPin: newPin || '1234',
         status: document.getElementById('setting-store-status').value.trim(),
         orderRule: document.getElementById('setting-store-h3').value.trim(),
-        location: document.getElementById('setting-store-location').value.trim(),
-        deliveryInfo: storeSettings.deliveryInfo,
         whatsapp: document.getElementById('setting-store-wa').value.trim().replace(/[^0-9]/g, ''),
-        instagram: document.getElementById('setting-store-ig').value.trim(),
-        adminPin: document.getElementById('setting-admin-pin').value.trim() || '1234'
+        instagram: document.getElementById('setting-store-ig').value.trim()
       };
-
-      if (db && currentUser) {
-        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'storeConfig'), updatedSettings);
-      } else {
-        storeSettings = updatedSettings;
-        applyStoreSettingsUI();
+      localStorage.setItem('brw_settings_v1', JSON.stringify(window.storeSettings));
+      if (window.cloudSaveSettings) {
+        await window.cloudSaveSettings(window.storeSettings);
       }
+      window.applyStoreSettingsUI();
       showToast('Pengaturan toko & PIN berhasil disimpan!');
-    };
+    }
 
-    window.exportOrdersCSV = function () {
-      if (orders.length === 0) {
+    function exportOrdersCSV() {
+      if (window.orders.length === 0) {
         showToast('Belum ada data pesanan untuk diunduh.');
         return;
       }
 
       const headers = ['ID Order', 'Waktu Pesan', 'Nama Pemesan', 'No WhatsApp', 'Tanggal Kirim/Ambil', 'Metode', 'Rincian Menu & Topping', 'Total Harga', 'Status', 'Alamat/Catatan'];
-      const rows = orders.map(o => {
+      const rows = window.orders.map(o => {
         const itemSummary = o.items.map(i => `${i.name} [${i.topping}] (${i.qty}x)`).join('; ');
         return [
           o.id,
@@ -1940,38 +2064,33 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       link.click();
       document.body.removeChild(link);
       showToast('File rekap Excel (CSV) berhasil diunduh!');
-    };
+    }
 
-    window.confirmClearOrders = function () {
+    function confirmClearOrders() {
       const modal = document.getElementById('confirm-reset-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-    };
+    }
 
-    window.closeResetModal = function () {
+    function closeResetModal() {
       const modal = document.getElementById('confirm-reset-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
-    };
+    }
 
-    window.executeClearOrders = async function () {
-      if (db && currentUser) {
-        const snapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
-        const deletePromises = [];
-        snapshot.forEach((docSnap) => {
-          deletePromises.push(deleteDoc(docSnap.ref));
-        });
-        await Promise.all(deletePromises);
-      } else {
-        orders = [];
-        renderAdminDashboard();
+    async function executeClearOrders() {
+      const ids = window.orders.map(o => o.id);
+      window.orders = [];
+      localStorage.setItem('brw_orders_v1', JSON.stringify(window.orders));
+      if (window.cloudClearAllOrders) {
+        await window.cloudClearAllOrders(ids);
       }
-      knownOrderIds.clear();
       closeResetModal();
+      window.renderAdminDashboard();
       showToast('Semua data rekap pesanan telah direset.');
-    };
+    }
 
-    function showToast(message) {
+    window.showToast = function(message) {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = 'bg-choco-dark text-cream px-4 py-3 rounded-2xl shadow-lg border border-caramel/40 text-xs sm:text-sm font-medium flex items-center gap-2 transition-all duration-300';
@@ -1982,7 +2101,7 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 300);
       }, 2800);
-    }
+    };
   </script>
 </body>
 </html>
