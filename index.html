@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BROWMINIE CAKE — Brownies & Fudgy Brownies</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Montserrat, Playfair Display & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tone.js untuk Suara Bel Notifikasi Pesanan Baru -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            choco: {
+              dark: '#2B170E',     // Darkest chocolate text & footer
+              DEFAULT: '#3E2216',  // Rich dark chocolate primary
+              melty: '#5C3321',    // Melty milk/dark chocolate accent
+              soft: '#7A4933',     // Warm cocoa muted
+            },
+            caramel: {
+              DEFAULT: '#C68B59',  // Melted caramel / gold accent
+              light: '#E3B992',
+              pale: '#F3DFC8',
+            },
+            cream: {
+              DEFAULT: '#FAF5EF',  // Soft warm cream background
+              card: '#FFFDFB',     // Clean off-white card
+              warm: '#F2E7DC',     // Secondary surface
+            },
+          },
+          fontFamily: {
+            brand: ['"Montserrat"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-cream text-choco-dark font-sans antialiased selection:bg-choco selection:text-cream flex flex-col min-h-screen">
+
+  <!-- ==================== NOTIFIKASI TOAST & BANNER PESANAN BARU ==================== -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Banner Notifikasi Pesanan Baru Real-Time (Muncul di Atas Saat Ada Order Masuk dari HP Pembeli) -->
+  <div id="realtime-order-banner" class="hidden fixed top-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-[420px] z-50 bg-choco-dark text-cream p-4 rounded-2xl shadow-2xl border-2 border-caramel animate-bounce">
+    <div class="flex items-start gap-3">
+      <div class="w-10 h-10 rounded-full bg-caramel text-choco-dark flex items-center justify-center shrink-0 mt-0.5">
+        <i data-lucide="bell-ring" class="w-5 h-5"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-caramel-light">Pesanan Baru Masuk!</span>
+          <button onclick="dismissOrderBanner()" class="text-cream/60 hover:text-white text-xs">Tutup</button>
+        </div>
+        <p id="banner-order-title" class="font-bold text-sm text-white truncate mt-0.5">Kak Pembeli — #BRW-000</p>
+        <p id="banner-order-detail" class="text-xs text-cream/80 truncate">1x Fudgy Brownies • Rp 35.000</p>
+        <div class="mt-2.5 flex items-center gap-2">
+          <button onclick="dismissOrderBanner(); handleAdminNavClick();" class="px-3 py-1.5 rounded-lg bg-caramel text-choco-dark font-extrabold text-xs hover:bg-caramel-light transition">
+            Lihat di Rekap Pemilik
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOP INFO BAR (DARI BIO IG) ==================== -->
+  <div class="bg-choco-dark text-cream text-[11px] sm:text-xs py-2 px-4 border-b border-choco-melty">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-center sm:justify-between gap-2 text-center">
+      <div class="flex items-center gap-2 font-medium">
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="topbar-status">We're OPEN</span>
+        </span>
+        <span class="text-caramel-light">•</span>
+        <span id="topbar-h3" class="font-semibold text-caramel-pale">Order max H-3</span>
+        <span class="hidden md:inline text-caramel-light">•</span>
+        <span id="sync-status-pill" class="hidden md:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-caramel-light">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Sinkronisasi Aktif
+        </span>
+      </div>
+      <div class="hidden sm:flex items-center gap-3 text-cream/80">
+        <span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-caramel"></i> <span id="topbar-location">Purwokerto Selatan</span></span>
+        <span>•</span>
+        <span id="topbar-delivery">Melayani DO, COD & Ambil di Tempat</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== HEADER & NAVIGASI ==================== -->
+  <header class="sticky top-0 z-40 bg-cream/95 backdrop-blur-md border-b border-cream-warm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+      <!-- Logo BROWMINIE cake (Sesuai Profil IG & Stiker Kemasan) -->
+      <a href="#beranda" onclick="switchView('customer')" class="flex items-center gap-3.5 group">
+        <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white border border-choco/25 shadow-sm flex flex-col items-center justify-center p-1.5 shrink-0 group-hover:border-choco transition">
+          <span class="font-brand font-extrabold text-[9.5px] sm:text-[10.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
+          <span class="font-brand font-medium text-[8.5px] sm:text-[9.5px] tracking-[0.22em] text-choco-soft mt-1 leading-none">cake</span>
+        </div>
+        <div>
+          <span id="header-store-name" class="font-brand font-extrabold text-base sm:text-xl text-choco-dark tracking-wider block leading-tight">
+            BROWMINIE CAKE
+          </span>
+          <span class="text-[10px] sm:text-[11px] text-choco-soft tracking-widest uppercase font-semibold">Brownies | Fudgy Brownies</span>
+        </div>
+      </a>
+
+      <!-- Navigasi Tengah (Desktop) -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-semibold">
+        <button onclick="switchView('customer'); scrollToSection('beranda')" class="text-choco-dark hover:text-choco-melty transition py-2">Beranda</button>
+        <button onclick="switchView('customer'); scrollToSection('katalog')" class="text-choco-dark hover:text-choco-melty transition py-2">Menu & Harga</button>
+        <button onclick="switchView('customer'); scrollToSection('info-order')" class="text-choco-dark hover:text-choco-melty transition py-2">Info Order</button>
+        <button id="nav-admin-btn" onclick="handleAdminNavClick()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cream-warm text-choco-dark hover:bg-caramel-pale transition font-bold border border-caramel/30">
+          <i id="admin-lock-icon" data-lucide="lock" class="w-3.5 h-3.5 text-choco-melty"></i>
+          <span>Rekap Pemilik</span>
+          <span id="admin-badge-count" class="bg-choco text-cream text-[11px] px-1.5 py-0.5 rounded-full leading-none">0</span>
+        </button>
+      </nav>
+
+      <!-- Aksi Kanan: IG + WA + Keranjang -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <!-- Logo Instagram -->
+        <a id="header-ig-link" href="https://www.instagram.com/browminie.cake?rpxt=MW5zZGx0dDcycHF5cw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram Browminie Cake"
+           class="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-cream-warm bg-white text-[#E1306C] hover:bg-pink-50 hover:border-[#E1306C]/40 flex items-center justify-center transition shadow-2xs">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+          </svg>
+        </a>
+
+        <!-- Logo WhatsApp -->
+        <a id="header-wa-link" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp Browminie Cake"
+           class="w-10 h-10 sm:w-11 sm:h-11 rounded-full border border-cream-warm bg-white text-[#25D366] hover:bg-emerald-50 hover:border-[#25D366]/50 flex items-center justify-center transition shadow-2xs">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+          </svg>
+        </a>
+
+        <!-- Tombol Keranjang / Pesanan -->
+        <button onclick="openCartDrawer()" class="relative flex items-center gap-2 bg-choco hover:bg-choco-melty text-cream px-3.5 sm:px-4 py-2.5 rounded-full text-sm font-bold shadow-sm transition">
+          <i data-lucide="shopping-bag" class="w-4 h-4 text-caramel-light"></i>
+          <span class="hidden sm:inline">Keranjang</span>
+          <span id="cart-count-badge" class="bg-caramel text-choco-dark text-xs font-extrabold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigasi Mobile Bar -->
+    <div class="flex md:hidden items-center justify-around border-t border-cream-warm bg-cream px-2 py-2 text-xs font-semibold">
+      <button onclick="switchView('customer'); scrollToSection('katalog')" class="flex items-center gap-1 text-choco-dark hover:text-choco-melty py-1 px-2">
+        <i data-lucide="grid" class="w-3.5 h-3.5 text-caramel"></i> Menu Kue
+      </button>
+      <button onclick="openCartDrawer()" class="flex items-center gap-1 text-choco-dark hover:text-choco-melty py-1 px-2">
+        <i data-lucide="shopping-bag" class="w-3.5 h-3.5 text-caramel"></i> Form Pesan
+      </button>
+      <button onclick="handleAdminNavClick()" class="flex items-center gap-1 text-choco-dark font-bold bg-cream-warm px-3 py-1 rounded-full border border-caramel/30">
+        <i id="admin-lock-icon-mobile" data-lucide="lock" class="w-3 h-3 text-choco-melty"></i> Rekap (<span id="admin-badge-mobile">0</span>)
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== TAMPILAN 1: HALAMAN PELANGGAN ==================== -->
+  <main id="customer-view" class="flex-1">
+    
+    <!-- HERO SECTION (TEMA COKLAT LUMER MINIMALIS) -->
+    <section id="beranda" class="relative overflow-hidden border-b border-cream-warm bg-gradient-to-br from-cream via-cream-warm/60 to-caramel-pale/40">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          <!-- Teks Hero -->
+          <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-caramel/40 text-choco text-xs font-bold tracking-wide shadow-2xs">
+              <span class="w-2 h-2 rounded-full bg-caramel"></span>
+              <span>BROWNIES | FUDGY BROWNIES • PURWOKERTO SELATAN</span>
+            </div>
+
+            <h1 class="font-serif text-3xl sm:text-5xl lg:text-[52px] font-bold text-choco-dark leading-[1.15]">
+              Sweet brownie for a <span class="text-choco-melty italic underline decoration-caramel/70 decoration-4 underline-offset-4">sweet day!!</span>
+            </h1>
+
+            <p class="text-choco-soft text-base sm:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              <strong class="text-choco-dark">Your comfort dessert here.</strong> Fudgy brownies panggang rumahan dengan tekstur lembut, cokelat pekat lumer, dan aneka topping melimpah. Pilih menu favoritmu dan pesan langsung sekarang!
+            </p>
+
+            <!-- Tombol CTA & Sosmed dengan Logo Resmi -->
+            <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+              <a href="#katalog" class="px-6 py-3.5 rounded-full bg-choco hover:bg-choco-melty text-cream font-bold text-sm sm:text-base shadow-md shadow-choco/20 transition flex items-center gap-2">
+                <span>Pilih Menu Brownies</span>
+                <i data-lucide="arrow-down" class="w-4 h-4 text-caramel-light"></i>
+              </a>
+              <a id="hero-wa-btn" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer"
+                 class="px-5 py-3.5 rounded-full bg-white hover:bg-emerald-50 text-choco-dark border border-cream-warm font-bold text-sm sm:text-base transition flex items-center gap-2 shadow-2xs">
+                <svg class="w-4 h-4 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+                </svg>
+                <span>WhatsApp Admin</span>
+              </a>
+              <a id="hero-ig-btn" href="https://www.instagram.com/browminie.cake?rpxt=MW5zZGx0dDcycHF5cw==" target="_blank" rel="noopener noreferrer"
+                 class="px-5 py-3.5 rounded-full bg-white hover:bg-pink-50 text-choco-dark border border-cream-warm font-bold text-sm sm:text-base transition flex items-center gap-2 shadow-2xs">
+                <svg class="w-4 h-4 text-[#E1306C]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span>@browminie.cake</span>
+              </a>
+            </div>
+
+            <!-- Info Singkat dari Bio IG -->
+            <div class="pt-5 grid grid-cols-3 gap-3 max-w-lg mx-auto lg:mx-0 border-t border-choco/10 text-left">
+              <div>
+                <p class="font-bold text-choco-dark text-xs sm:text-sm flex items-center gap-1">
+                  <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-caramel"></i> Order Max H-3
+                </p>
+                <p class="text-[11px] sm:text-xs text-choco-soft mt-0.5">Freshly baked by order</p>
+              </div>
+              <div>
+                <p class="font-bold text-choco-dark text-xs sm:text-sm flex items-center gap-1">
+                  <i data-lucide="bike" class="w-3.5 h-3.5 text-caramel"></i> DO & COD
+                </p>
+                <p class="text-[11px] sm:text-xs text-choco-soft mt-0.5">Area Purwokerto</p>
+              </div>
+              <div>
+                <p class="font-bold text-choco-dark text-xs sm:text-sm flex items-center gap-1">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-caramel"></i> Lokasi Dapur
+                </p>
+                <p class="text-[11px] sm:text-xs text-choco-soft mt-0.5">Purwokerto Selatan</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Hero Card (Menampilkan Foto Menu & Stiker Lingkaran Brand) -->
+          <div class="lg:col-span-5">
+            <div class="relative mx-auto max-w-md">
+              <div id="hero-featured-img-wrapper" class="aspect-[4/3] rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-choco-dark">
+                <img
+                  id="hero-featured-img"
+                  src=""
+                  alt="BROWMINIE CAKE Fudgy Brownies"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+
+              <!-- Emblem Lingkaran Brand Minimalis (Sesuai Profil IG) -->
+              <div class="mt-4 sm:mt-0 sm:absolute sm:-bottom-6 sm:-left-6 bg-white p-3.5 rounded-3xl shadow-lg border border-choco/20 flex items-center gap-3.5">
+                <div class="w-16 h-16 rounded-full border border-choco-dark/30 bg-white flex flex-col items-center justify-center p-1 shrink-0 shadow-2xs">
+                  <span class="font-brand font-extrabold text-[9.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
+                  <span class="font-brand font-medium text-[8.5px] tracking-[0.22em] text-choco-soft mt-1 leading-none">cake</span>
+                </div>
+                <div class="pr-2">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-caramel">Comfort Dessert</span>
+                  <p class="font-bold text-choco-dark text-sm leading-tight">Fudgy & Melty Brownies</p>
+                  <p class="text-xs text-choco-soft">Mulai dari Rp 15.000</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KATALOG MENU BERGAMBAR & DAFTAR HARGA -->
+    <section id="katalog" class="py-12 sm:py-16">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Katalog -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-caramel">Our Menu</span>
+            <h2 class="font-serif text-2xl sm:text-4xl font-bold text-choco-dark mt-1">Daftar Menu & Harga</h2>
+            <p class="text-choco-soft text-sm sm:text-base mt-1">Pilih varian topping yang diinginkan, lalu klik <strong>+ Tambah Pesanan</strong>.</p>
+          </div>
+
+          <!-- Pencarian Cepat -->
+          <div class="relative w-full md:w-64">
+            <i data-lucide="search" class="w-4 h-4 text-choco-soft absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input
+              type="text"
+              id="search-menu-input"
+              oninput="renderMenuGrid()"
+              placeholder="Cari menu brownies..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-full bg-white border border-cream-warm text-sm text-choco-dark placeholder:text-choco-soft/70 focus:outline-none focus:border-choco"
+            />
+          </div>
+        </div>
+
+        <!-- Grid Kartu Produk -->
+        <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+          <!-- Diisi via JavaScript -->
+        </div>
+
+        <!-- Banner Ringkasan Keranjang Mengambang (Muncul jika ada item di keranjang) -->
+        <div id="floating-cart-bar" class="hidden fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 z-30 bg-choco-dark text-cream p-4 rounded-2xl shadow-2xl border border-caramel/40 flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs text-caramel-light font-medium"><span id="float-item-count">0</span> item dipilih</p>
+            <p class="font-bold text-base sm:text-lg" id="float-total-price">Rp 0</p>
+          </div>
+          <button onclick="openCartDrawer()" class="bg-caramel text-choco-dark hover:bg-caramel-light px-4 py-2.5 rounded-xl font-extrabold text-sm flex items-center gap-1.5 transition shrink-0">
+            <span>Lanjut Pesan</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- INFO PEMESANAN & PENGIRIMAN (SESUAI BIO INSTAGRAM) -->
+    <section id="info-order" class="py-12 bg-cream-warm/60 border-t border-cream-warm">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-xl mx-auto mb-10">
+          <span class="text-xs font-bold uppercase tracking-widest text-caramel">Ketentuan Pemesanan</span>
+          <h2 class="font-serif text-2xl sm:text-3xl font-bold text-choco-dark mt-1">Informasi Order BROWMINIE CAKE</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-cream-warm shadow-2xs">
+            <div class="w-10 h-10 rounded-xl bg-choco text-caramel-light flex items-center justify-center mb-4">
+              <i data-lucide="calendar-check" class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-bold text-lg text-choco-dark mb-1">Order Maksimal H-3</h3>
+            <p class="text-sm text-choco-soft leading-relaxed">Semua brownies dibuat segar berdasarkan pesanan (freshly baked). Pastikan memesan maksimal H-3 sebelum tanggal acara atau pengambilan.</p>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-cream-warm shadow-2xs">
+            <div class="w-10 h-10 rounded-xl bg-choco text-caramel-light flex items-center justify-center mb-4">
+              <i data-lucide="truck" class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-bold text-lg text-choco-dark mb-1">DO, COD & Ambil Sendiri</h3>
+            <p class="text-sm text-choco-soft leading-relaxed">Melayani DO (Delivery Order), COD (Cash on Delivery) area Purwokerto, maupun ambil langsung di dapur kami di Purwokerto Selatan.</p>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-cream-warm shadow-2xs">
+            <div class="w-10 h-10 rounded-xl bg-choco text-caramel-light flex items-center justify-center mb-4">
+              <i data-lucide="message-circle" class="w-5 h-5"></i>
+            </div>
+            <h3 class="font-bold text-lg text-choco-dark mb-1">Notifikasi Otomatis ke WA</h3>
+            <p class="text-sm text-choco-soft leading-relaxed">Begitu pesanan dikirim, data langsung masuk ke rekap real-time dan otomatis diteruskan ke WhatsApp admin BROWMINIE CAKE.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== TAMPILAN 2: REKAP PESANAN & KELOLA MENU (PEMILIK TOKO) ==================== -->
+  <main id="admin-view" class="hidden flex-1 py-8 sm:py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <!-- Header Admin -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-cream-warm shadow-xs">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-caramel-pale text-choco-dark text-xs font-bold">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-choco"></i> Halaman Pemilik Toko
+            </span>
+            <span id="admin-realtime-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
+              <span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span> Real-Time Sync Aktif
+            </span>
+          </div>
+          <h1 class="font-serif text-2xl sm:text-3xl font-bold text-choco-dark">Rekap Pesanan & Kelola Foto Menu</h1>
+          <p class="text-sm text-choco-soft mt-1">Data pesanan dari seluruh perangkat pelanggan tersinkronisasi secara real-time di sini.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="testNotificationSound()" class="px-3.5 py-2.5 rounded-xl border border-caramel/40 bg-caramel-pale/40 hover:bg-caramel-pale text-choco-dark text-sm font-semibold flex items-center gap-1.5 transition" title="Uji Suara & Notifikasi Browser">
+            <i data-lucide="bell" class="w-4 h-4 text-choco"></i> Tes Notifikasi
+          </button>
+          <button onclick="lockAdminAndReturn()" class="px-4 py-2.5 rounded-xl border border-cream-warm bg-cream hover:bg-cream-warm text-choco-dark text-sm font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="lock" class="w-4 h-4"></i> Kunci & Keluar
+          </button>
+          <button onclick="exportOrdersCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold flex items-center gap-1.5 shadow-xs transition">
+            <i data-lucide="download" class="w-4 h-4"></i> Unduh Excel (CSV)
+          </button>
+        </div>
+      </div>
+
+      <!-- Kartu Statistik Ringkasan -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-cream-warm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-cream-warm text-choco flex items-center justify-center shrink-0">
+            <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-choco-soft">Total Pesanan</p>
+            <p id="stat-total-orders" class="text-2xl sm:text-3xl font-extrabold text-choco-dark mt-0.5">0</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-cream-warm flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-cream-warm text-choco flex items-center justify-center shrink-0">
+            <i data-lucide="package" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-choco-soft">Total Box / Cup Terjual</p>
+            <p id="stat-total-items" class="text-2xl sm:text-3xl font-extrabold text-choco-dark mt-0.5">0 <span class="text-sm font-normal text-choco-soft">pcs</span></p>
+          </div>
+        </div>
+
+        <div class="bg-choco text-cream p-6 rounded-2xl shadow-md flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 text-caramel-light flex items-center justify-center shrink-0">
+            <i data-lucide="wallet" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-caramel-light">Total Omzet Rekap</p>
+            <p id="stat-total-revenue" class="text-2xl sm:text-3xl font-extrabold mt-0.5">Rp 0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-Tab Admin -->
+      <div class="bg-white rounded-3xl border border-cream-warm overflow-hidden shadow-xs">
+        <div class="border-b border-cream-warm px-6 pt-4 flex flex-wrap items-center justify-between gap-4 bg-cream/50">
+          <div class="flex items-center gap-6">
+            <button id="tab-orders-btn" onclick="switchAdminTab('orders')" class="pb-3.5 text-sm font-bold border-b-2 border-choco text-choco-dark transition">
+              Daftar Rekap Pesanan
+            </button>
+            <button id="tab-products-btn" onclick="switchAdminTab('products')" class="pb-3.5 text-sm font-semibold border-b-2 border-transparent text-choco-soft hover:text-choco-dark transition">
+              Kelola Foto, Menu & PIN
+            </button>
+          </div>
+
+          <!-- Filter Status Pesanan -->
+          <div id="order-filter-controls" class="pb-3 flex items-center gap-2">
+            <select id="filter-order-status" onchange="renderAdminOrders()" class="text-xs sm:text-sm bg-white border border-cream-warm rounded-xl px-3 py-1.5 text-choco-dark focus:outline-none focus:border-choco">
+              <option value="Semua">Semua Status</option>
+              <option value="Baru">Baru</option>
+              <option value="Diproses">Diproses</option>
+              <option value="Selesai">Selesai</option>
+            </select>
+            <button onclick="confirmClearOrders()" class="text-xs text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200 font-semibold transition">
+              Reset Rekap
+            </button>
+          </div>
+        </div>
+
+        <!-- KONTEN SUB-TAB 1: TABEL REKAP PESANAN -->
+        <div id="admin-tab-orders" class="p-4 sm:p-6">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-cream-warm text-xs font-bold uppercase tracking-wider text-choco-soft bg-cream/60">
+                  <th class="py-3.5 px-4 rounded-tl-xl">ID & Waktu</th>
+                  <th class="py-3.5 px-4">Pemesan</th>
+                  <th class="py-3.5 px-4">Rincian Pesanan & Topping</th>
+                  <th class="py-3.5 px-4">Tanggal & Metode</th>
+                  <th class="py-3.5 px-4">Total</th>
+                  <th class="py-3.5 px-4 rounded-tr-xl">Status</th>
+                </tr>
+              </thead>
+              <tbody id="admin-orders-tbody" class="divide-y divide-cream-warm text-sm">
+                <!-- Diisi via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+          <div id="empty-orders-state" class="hidden py-12 text-center">
+            <div class="w-14 h-14 rounded-full bg-cream-warm text-choco mx-auto flex items-center justify-center mb-3">
+              <i data-lucide="inbox" class="w-7 h-7"></i>
+            </div>
+            <p class="font-bold text-choco-dark">Belum ada pesanan pada kategori ini</p>
+            <p class="text-xs text-choco-soft mt-1">Pesanan baru dari perangkat mana pun akan langsung muncul di sini.</p>
+          </div>
+        </div>
+
+        <!-- KONTEN SUB-TAB 2: KELOLA FOTO & MENU KUE + PENGATURAN TOKO & PIN -->
+        <div id="admin-tab-products" class="hidden p-6 space-y-8">
+          <!-- Daftar Menu Aktif -->
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <div>
+                <h3 class="font-serif font-bold text-xl text-choco-dark">Daftar Menu Aktif & Ganti Foto</h3>
+                <p class="text-xs text-choco-soft">Perubahan foto dan menu langsung tersinkronisasi ke semua HP/device pembeli.</p>
+              </div>
+            </div>
+            <div id="admin-menu-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6 border-t border-cream-warm">
+            <!-- Form Tambah Menu Baru -->
+            <div class="bg-cream/60 p-6 rounded-2xl border border-cream-warm">
+              <h3 class="font-serif font-bold text-xl text-choco-dark mb-1">+ Tambah Menu Baru</h3>
+              <p class="text-xs text-choco-soft mb-4">Tambahkan varian kue baru beserta foto langsung dari galeri.</p>
+              
+              <form onsubmit="handleAddMenu(event)" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-choco-dark mb-1">Nama Menu Kue *</label>
+                  <input type="text" id="new-menu-name" required placeholder="Contoh: Fudgy Brownies Loyang Besar"
+                         class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-bold text-choco-dark mb-1">Harga (Rp) *</label>
+                    <input type="number" id="new-menu-price" required min="1000" step="500" placeholder="55000"
+                           class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-choco-dark mb-1">Pilihan Topping (Pisahkan koma)</label>
+                    <input type="text" id="new-menu-toppings" placeholder="Mix Topping, Chocochips, Keju"
+                           class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-choco-dark mb-1">Deskripsi Singkat *</label>
+                  <textarea id="new-menu-desc" rows="2" required placeholder="Ukuran kemasan, tekstur, dan pilihan topping..."
+                            class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco"></textarea>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-choco-dark mb-1">Pilih Foto Kue dari Galeri / Laptop</label>
+                  <input type="file" id="new-menu-file" accept="image/*"
+                         class="w-full text-xs text-choco-soft file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-choco file:text-cream hover:file:bg-choco-melty cursor-pointer bg-white p-1.5 rounded-xl border border-cream-warm" />
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm transition shadow-xs">
+                  Simpan Menu Baru
+                </button>
+              </form>
+            </div>
+
+            <!-- Pengaturan Info Toko & PIN Pemilik -->
+            <div class="bg-cream/60 p-6 rounded-2xl border border-cream-warm flex flex-col justify-between">
+              <div>
+                <h3 class="font-serif font-bold text-xl text-choco-dark mb-1">Pengaturan Toko, Kontak & PIN</h3>
+                <p class="text-xs text-choco-soft mb-4">Ubah status toko, nomor WhatsApp notifikasi, link IG, atau PIN halaman pemilik.</p>
+                
+                <form onsubmit="handleSaveStoreSettings(event)" class="space-y-3.5">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-choco-dark mb-1">Nama Toko</label>
+                      <input type="text" id="setting-store-name" required
+                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-choco-dark mb-1">Status Toko</label>
+                      <input type="text" id="setting-store-status" required placeholder="We're OPEN"
+                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-choco-dark mb-1">Ketentuan Order</label>
+                      <input type="text" id="setting-store-h3" required placeholder="Order max H-3"
+                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-choco-dark mb-1">Lokasi</label>
+                      <input type="text" id="setting-store-location" required placeholder="Purwokerto Selatan"
+                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-bold text-choco-dark mb-1">No. WhatsApp Penerima Order</label>
+                      <input type="text" id="setting-store-wa" required placeholder="628985490037"
+                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold text-choco-dark mb-1">PIN Rekap Pemilik (4-6 Angka)</label>
+                      <input type="text" id="setting-admin-pin" required pattern="[0-9]{4,6}" maxlength="6" placeholder="1234"
+                             class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm font-bold tracking-widest focus:outline-none focus:border-choco" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-choco-dark mb-1">Link Instagram</label>
+                    <input type="url" id="setting-store-ig" required
+                           class="w-full px-3.5 py-2 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+                  </div>
+                  <button type="submit" class="w-full py-3 rounded-xl bg-caramel hover:bg-caramel-light text-choco-dark font-extrabold text-sm transition">
+                    Simpan Pengaturan & PIN
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== MODAL PIN PEMILIK TOKO ==================== -->
+  <div id="pin-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/70 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 border border-cream-warm shadow-2xl text-center space-y-4">
+      <div class="w-14 h-14 rounded-full bg-cream-warm text-choco mx-auto flex items-center justify-center">
+        <i data-lucide="lock" class="w-7 h-7"></i>
+      </div>
+      <div>
+        <h3 class="font-serif text-xl font-bold text-choco-dark">Akses Khusus Pemilik Toko</h3>
+        <p class="text-xs text-choco-soft mt-1">Masukkan PIN untuk membuka rekap pesanan & mengaktifkan notifikasi suara pesanan masuk.</p>
+      </div>
+      <form onsubmit="verifyAdminPin(event)" class="space-y-3">
+        <input type="password" id="pin-input" inputmode="numeric" maxlength="6" required placeholder="••••"
+               class="w-full text-center text-2xl font-extrabold tracking-[0.5em] py-3 rounded-2xl bg-cream border border-cream-warm text-choco-dark focus:outline-none focus:border-choco" />
+        <p id="pin-error-msg" class="hidden text-xs text-red-600 font-semibold">PIN salah. Silakan coba lagi (PIN standar: 1234).</p>
+        <div class="flex gap-2.5 pt-1">
+          <button type="button" onclick="closePinModal()" class="flex-1 py-2.5 rounded-xl border border-cream-warm text-choco-dark font-semibold text-sm hover:bg-cream">Batal</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm">Buka Rekap</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== DRAWER KERANJANG & FORM PEMESANAN ==================== -->
+  <div id="cart-drawer-backdrop" onclick="closeCartDrawer()" class="fixed inset-0 bg-choco-dark/60 backdrop-blur-xs z-50 hidden transition-opacity"></div>
+  <aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full sm:w-[460px] bg-cream z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+    <!-- Header Drawer -->
+    <div class="px-6 py-4 bg-white border-b border-cream-warm flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <i data-lucide="shopping-bag" class="w-5 h-5 text-choco"></i>
+        <h2 class="font-serif font-bold text-xl text-choco-dark">Keranjang Pesanan</h2>
+      </div>
+      <button onclick="closeCartDrawer()" class="w-9 h-9 rounded-full hover:bg-cream-warm flex items-center justify-center text-choco-dark transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Isi Drawer -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-6">
+      <!-- Daftar Item -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-choco-soft">Brownies yang Dipilih</h3>
+          <button onclick="clearCart()" id="clear-cart-btn" class="text-xs text-choco-melty hover:underline font-semibold hidden">Kosongkan</button>
+        </div>
+
+        <div id="cart-items-container" class="space-y-3">
+          <!-- Diisi via JS -->
+        </div>
+      </div>
+
+      <!-- Ringkasan Harga -->
+      <div id="cart-summary-box" class="bg-white p-4 rounded-2xl border border-cream-warm space-y-2 hidden">
+        <div class="flex justify-between text-sm text-choco-soft">
+          <span>Total Jumlah</span>
+          <span id="drawer-total-qty">0 pcs</span>
+        </div>
+        <div class="flex justify-between text-base font-bold text-choco-dark pt-2 border-t border-cream-warm">
+          <span>Total Pembayaran</span>
+          <span id="drawer-total-price" class="text-choco text-lg font-extrabold">Rp 0</span>
+        </div>
+      </div>
+
+      <!-- Form Data Pemesan -->
+      <form id="checkout-form" onsubmit="submitOrder(event)" class="space-y-4 hidden">
+        <div class="bg-caramel-pale/50 border border-caramel/40 rounded-xl p-3 text-xs text-choco-dark flex items-start gap-2">
+          <i data-lucide="info" class="w-4 h-4 text-choco shrink-0 mt-0.5"></i>
+          <span>Catatan: <strong>Order max H-3</strong>. Dapur berlokasi di <strong>Purwokerto Selatan</strong>.</span>
+        </div>
+
+        <h3 class="text-xs font-bold uppercase tracking-wider text-choco-soft pt-1">Data Pemesan</h3>
+        
+        <div>
+          <label class="block text-xs font-bold text-choco-dark mb-1">Nama Pemesan *</label>
+          <input type="text" id="order-name" required placeholder="Masukkan nama lengkap Anda"
+                 class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-choco-dark mb-1">Nomor WhatsApp *</label>
+            <input type="tel" id="order-phone" required placeholder="08xxxxxxxxxx"
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-choco-dark mb-1">Tanggal Ambil / Kirim *</label>
+            <input type="date" id="order-date" required
+                   class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-choco-dark mb-1">Metode Pengiriman *</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryMethod" value="DO (Delivery Order)" checked onchange="toggleAddressField()" class="peer sr-only" />
+              <div class="p-2.5 rounded-xl border border-cream-warm bg-white text-center text-xs font-bold text-choco-dark peer-checked:bg-choco peer-checked:text-cream peer-checked:border-choco transition">
+                DO (Antar)
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryMethod" value="COD" onchange="toggleAddressField()" class="peer sr-only" />
+              <div class="p-2.5 rounded-xl border border-cream-warm bg-white text-center text-xs font-bold text-choco-dark peer-checked:bg-choco peer-checked:text-cream peer-checked:border-choco transition">
+                COD
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryMethod" value="Ambil di Tempat" onchange="toggleAddressField()" class="peer sr-only" />
+              <div class="p-2.5 rounded-xl border border-cream-warm bg-white text-center text-xs font-bold text-choco-dark peer-checked:bg-choco peer-checked:text-cream peer-checked:border-choco transition">
+                Ambil Sendiri
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label id="address-label" class="block text-xs font-bold text-choco-dark mb-1">Alamat Pengiriman / Titik COD *</label>
+          <textarea id="order-notes" rows="2" required placeholder="Masukkan alamat lengkap pengiriman (area Purwokerto) & catatan tambahan..."
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-cream-warm text-sm focus:outline-none focus:border-choco"></textarea>
+        </div>
+
+        <button type="submit" id="submit-order-btn" class="w-full py-3.5 rounded-2xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm sm:text-base shadow-lg shadow-choco/20 flex items-center justify-center gap-2 transition">
+          <i data-lucide="send" class="w-4 h-4 text-caramel-light"></i>
+          <span>Pesan & Kirim Notifikasi ke WA Admin</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- ==================== MODAL KONFIRMASI PESANAN BERHASIL ==================== -->
+  <div id="success-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/65 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-cream-warm shadow-2xl text-center space-y-5">
+      <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
+        <i data-lucide="check" class="w-8 h-8"></i>
+      </div>
+      <div>
+        <span class="text-xs font-bold uppercase tracking-wider text-caramel">Pesanan Tercatat Real-Time</span>
+        <h3 class="font-serif text-2xl font-bold text-choco-dark mt-1">Terima Kasih, <span id="modal-customer-name">Kak</span>!</h3>
+        <p class="text-sm text-choco-soft mt-2 leading-relaxed">
+          Pesanan Anda (<strong id="modal-order-id" class="text-choco-dark">#BRW-001</strong>) sudah masuk otomatis ke rekap dapur <strong>BROWMINIE CAKE</strong>. Pastikan klik tombol WhatsApp di bawah agar notifikasi masuk ke HP admin!
+        </p>
+      </div>
+
+      <div class="bg-cream p-3.5 rounded-2xl border border-cream-warm text-left text-xs text-choco-dark space-y-1 max-h-40 overflow-y-auto" id="modal-order-summary">
+        <!-- Ringkasan -->
+      </div>
+
+      <div class="space-y-2.5 pt-1">
+        <a id="modal-wa-send-btn" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer"
+           class="w-full py-3.5 rounded-xl bg-[#25D366] hover:bg-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+          </svg>
+          <span>Kirim Pesanan ke WhatsApp Admin</span>
+        </a>
+        <button onclick="closeSuccessModal()" class="w-full py-2.5 rounded-xl bg-cream-warm hover:bg-caramel-pale text-choco-dark font-semibold text-sm transition">
+          Tutup & Kembali ke Beranda
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL KONFIRMASI RESET DATA ==================== -->
+  <div id="confirm-reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/65 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-cream-warm shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-700 mx-auto flex items-center justify-center">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+      <h3 class="font-serif text-xl font-bold text-choco-dark">Hapus Semua Rekap?</h3>
+      <p class="text-xs text-choco-soft leading-relaxed">Seluruh data riwayat pesanan real-time akan dihapus secara permanen dari semua perangkat.</p>
+      <div class="flex gap-2.5 pt-2">
+        <button onclick="closeResetModal()" class="flex-1 py-2.5 rounded-xl border border-cream-warm text-choco-dark font-semibold text-sm hover:bg-cream">Batal</button>
+        <button onclick="executeClearOrders()" class="flex-1 py-2.5 rounded-xl bg-red-700 text-white font-semibold text-sm hover:bg-red-800">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-choco-dark text-cream/90 mt-auto border-t border-choco">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-white/10">
+        <!-- Brand & Logo Lingkaran Besar -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-3.5">
+            <div class="w-16 h-16 rounded-full bg-white flex flex-col items-center justify-center p-1.5 shrink-0 shadow-sm">
+              <span class="font-brand font-extrabold text-[9.5px] tracking-[0.13em] text-choco-dark leading-none">BROWMINIE</span>
+              <span class="font-brand font-medium text-[8.5px] tracking-[0.22em] text-choco-soft mt-1 leading-none">cake</span>
+            </div>
+            <div>
+              <span id="footer-store-name" class="font-brand font-extrabold text-lg text-white tracking-wider block">BROWMINIE CAKE</span>
+              <span class="text-[11px] text-caramel-light">BROWNIES | FUDGY BROWNIES</span>
+            </div>
+          </div>
+          <p class="text-sm text-cream/75 leading-relaxed">
+            Sweet brownie for a sweet day!! Your comfort dessert here. Dipanggang hangat dengan cokelat pilihan untuk menemani hari manismu.
+          </p>
+        </div>
+
+        <!-- Info dari Bio Instagram -->
+        <div class="space-y-2.5">
+          <h4 class="font-bold text-sm uppercase tracking-wider text-caramel-light">Informasi Pemesanan</h4>
+          <p class="text-sm text-cream/85 flex items-center gap-2">
+            <i data-lucide="calendar-clock" class="w-4 h-4 text-caramel"></i>
+            <span>Order max H-3 (Made by order)</span>
+          </p>
+          <p class="text-sm text-cream/85 flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-caramel"></i>
+            <span>Purwokerto Selatan</span>
+          </p>
+          <p class="text-sm text-cream/85 flex items-center gap-2">
+            <i data-lucide="bike" class="w-4 h-4 text-caramel"></i>
+            <span>Melayani DO, COD & Ambil di Tempat</span>
+          </p>
+        </div>
+
+        <!-- Kontak Langsung -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-sm uppercase tracking-wider text-caramel-light">Hubungi & Ikuti Kami</h4>
+          <p class="text-sm text-cream/75">DM Instagram atau chat WhatsApp untuk informasi lebih lanjut:</p>
+          <div class="flex flex-wrap gap-2.5 pt-1">
+            <a id="footer-wa-link" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer"
+               class="px-4 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-2 transition">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.762.459 3.481 1.332 4.996l-1.416 5.172 5.293-1.389c1.461.797 3.105 1.219 4.76 1.219h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05-1.883-1.883-4.387-2.948-7.053-2.948zm5.822 14.273c-.246.693-1.432 1.325-1.984 1.409-.506.077-1.147.109-1.851-.114-.428-.136-.977-.318-1.681-.622-2.959-1.278-4.892-4.256-5.04-4.453-.148-.197-1.204-1.602-1.204-3.056 0-1.454.762-2.169 1.032-2.465.271-.296.591-.37.788-.37.197 0 .394.002.566.01.182.009.426-.069.666.508.246.591.837 2.045.911 2.193.074.148.123.32.025.517-.099.197-.148.32-.296.493-.148.172-.311.385-.444.517-.148.148-.302.308-.13.604.172.296.766 1.264 1.645 2.048 1.13 1.008 2.083 1.32 2.379 1.468.296.148.468.123.64-.074.172-.197.739-.862.936-1.158.197-.296.394-.246.665-.148.271.099 1.724.813 2.02.961.296.148.493.222.566.345.074.123.074.714-.172 1.407z"/>
+              </svg>
+              <span>WhatsApp</span>
+            </a>
+            <a id="footer-ig-link" href="https://www.instagram.com/browminie.cake?rpxt=MW5zZGx0dDcycHF5cw==" target="_blank" rel="noopener noreferrer"
+               class="px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-2 transition">
+              <svg class="w-4 h-4 text-[#E1306C]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+              <span>@browminie.cake</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-cream/50 gap-2">
+        <p>&copy; 2026 <span id="copyright-store-name">BROWMINIE CAKE</span>. Purwokerto Selatan.</p>
+        <button onclick="handleAdminNavClick()" class="text-caramel-light/80 hover:text-caramel-light underline">Halaman Rekap Pemilik Toko</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== LOGIKA REAL-TIME CLOUD SYNC & APLIKASI ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // 1. ILUSTRASI MENU DEFAULT
+    function createBrowniesIllustration(type) {
+      if (type === 'sekat') {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+          <defs>
+            <linearGradient id="boxGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#C89D74"/>
+              <stop offset="100%" stop-color="#9E724B"/>
+            </linearGradient>
+            <linearGradient id="fudgeGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3B1E12"/>
+              <stop offset="100%" stop-color="#221008"/>
+            </linearGradient>
+          </defs>
+          <rect width="800" height="600" fill="#2B170E"/>
+          <rect x="70" y="50" width="660" height="500" rx="24" fill="url(#boxGrad)"/>
+          <rect x="92" y="72" width="616" height="456" rx="16" fill="#F5EFE8"/>
+          <g transform="translate(106, 86)">
+            <rect x="0" y="0" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <circle cx="40" cy="40" r="8" fill="#1A0B05"/><circle cx="95" cy="35" r="9" fill="#1A0B05"/><circle cx="65" cy="75" r="8" fill="#1A0B05"/><circle cx="110" cy="95" r="8" fill="#1A0B05"/><circle cx="35" cy="105" r="7" fill="#1A0B05"/>
+            <rect x="148" y="0" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <ellipse cx="195" cy="45" rx="18" ry="9" transform="rotate(-25 195 45)" fill="#F3E2C7"/>
+            <ellipse cx="240" cy="60" rx="18" ry="9" transform="rotate(20 240 60)" fill="#F3E2C7"/>
+            <ellipse cx="210" cy="95" rx="17" ry="8" transform="rotate(-10 210 95)" fill="#F3E2C7"/>
+            <rect x="296" y="0" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <circle cx="335" cy="45" r="8" fill="#1A0B05"/><circle cx="390" cy="40" r="8" fill="#1A0B05"/><circle cx="365" cy="80" r="9" fill="#1A0B05"/><circle cx="405" cy="100" r="7" fill="#1A0B05"/>
+            <rect x="444" y="0" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <rect x="470" y="35" width="35" height="6" rx="3" transform="rotate(25 470 35)" fill="#F6D58E"/>
+            <rect x="515" y="55" width="35" height="6" rx="3" transform="rotate(-35 515 55)" fill="#F6D58E"/>
+            <rect x="480" y="90" width="38" height="6" rx="3" transform="rotate(15 480 90)" fill="#F6D58E"/>
+            <rect x="0" y="144" width="142" height="138" rx="10" fill="#C48647"/>
+            <circle cx="35" cy="180" r="14" fill="#A86B32" opacity="0.6"/><circle cx="95" cy="210" r="18" fill="#D99B5B" opacity="0.7"/><circle cx="55" cy="245" r="15" fill="#9E622B" opacity="0.5"/>
+            <rect x="148" y="144" width="142" height="138" rx="10" fill="#C48647"/>
+            <circle cx="190" cy="190" r="16" fill="#A86B32" opacity="0.6"/><circle cx="245" cy="230" r="15" fill="#D99B5B" opacity="0.7"/>
+            <rect x="296" y="144" width="142" height="138" rx="10" fill="#9E2A38"/>
+            <circle cx="335" cy="185" r="15" fill="#7D1E2A" opacity="0.6"/><circle cx="395" cy="225" r="18" fill="#B83747" opacity="0.6"/>
+            <rect x="444" y="144" width="142" height="138" rx="10" fill="#9E2A38"/>
+            <circle cx="485" cy="190" r="15" fill="#7D1E2A" opacity="0.6"/><circle cx="535" cy="235" r="17" fill="#B83747" opacity="0.6"/>
+            <rect x="0" y="288" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <rect x="25" y="320" width="38" height="6" rx="3" transform="rotate(20 25 320)" fill="#F6D58E"/>
+            <rect x="75" y="345" width="36" height="6" rx="3" transform="rotate(-30 75 345)" fill="#F6D58E"/>
+            <rect x="40" y="385" width="40" height="6" rx="3" transform="rotate(10 40 385)" fill="#F6D58E"/>
+            <rect x="148" y="288" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <rect x="175" y="325" width="38" height="6" rx="3" transform="rotate(-15 175 325)" fill="#F6D58E"/>
+            <rect x="220" y="365" width="38" height="6" rx="3" transform="rotate(35 220 365)" fill="#F6D58E"/>
+            <rect x="296" y="288" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <ellipse cx="345" cy="335" rx="18" ry="9" transform="rotate(25 345 335)" fill="#F3E2C7"/>
+            <ellipse cx="390" cy="375" rx="18" ry="9" transform="rotate(-20 390 375)" fill="#F3E2C7"/>
+            <rect x="444" y="288" width="142" height="138" rx="10" fill="url(#fudgeGrad)"/>
+            <circle cx="485" cy="330" r="8" fill="#1A0B05"/><circle cx="535" cy="340" r="9" fill="#1A0B05"/><circle cx="510" cy="385" r="8" fill="#1A0B05"/>
+          </g>
+          <rect x="230" y="510" width="340" height="44" rx="22" fill="#2B170E"/>
+          <text x="400" y="537" font-family="sans-serif" font-size="16" font-weight="bold" fill="#FAF5EF" text-anchor="middle" letter-spacing="2">FUDGY BROWNIES SEKAT • 35K</text>
+        </svg>`;
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+      } else {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+          <defs>
+            <linearGradient id="foilGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#E2E5E9"/>
+              <stop offset="50%" stop-color="#B8BEC6"/>
+              <stop offset="100%" stop-color="#8F96A0"/>
+            </linearGradient>
+          </defs>
+          <rect width="800" height="600" fill="#26140C"/>
+          <g transform="translate(115, 75)">
+            <rect x="0" y="0" width="250" height="410" rx="34" fill="url(#foilGrad)"/>
+            <rect x="18" y="18" width="214" height="374" rx="24" fill="#3B1E12"/>
+            <path d="M18 42 Q18 18 42 18 L208 18 Q232 18 232 42 L232 200 L18 200 Z" fill="#8C262E"/>
+            <ellipse cx="75" cy="260" rx="20" ry="10" transform="rotate(-20 75 260)" fill="#F3E2C7"/>
+            <ellipse cx="145" cy="275" rx="20" ry="10" transform="rotate(25 145 275)" fill="#F3E2C7"/>
+            <ellipse cx="105" cy="325" rx="20" ry="10" transform="rotate(-10 105 325)" fill="#F3E2C7"/>
+            <ellipse cx="175" cy="340" rx="19" ry="9" transform="rotate(15 175 340)" fill="#F3E2C7"/>
+            <rect x="42" y="145" width="166" height="112" fill="#FFFFFF" stroke="#2B170E" stroke-width="2"/>
+            <text x="125" y="198" font-family="sans-serif" font-size="14" font-weight="800" fill="#2B170E" text-anchor="middle" letter-spacing="2">BROWMINIE</text>
+            <text x="125" y="220" font-family="sans-serif" font-size="11" font-weight="500" fill="#6B4F43" text-anchor="middle" letter-spacing="3">cake</text>
+          </g>
+          <g transform="translate(435, 75)">
+            <rect x="0" y="0" width="250" height="410" rx="34" fill="url(#foilGrad)"/>
+            <rect x="18" y="18" width="214" height="374" rx="24" fill="#2D160C"/>
+            <circle cx="70" cy="70" r="10" fill="#180A04"/><circle cx="155" cy="85" r="11" fill="#180A04"/><circle cx="110" cy="120" r="9" fill="#180A04"/>
+            <rect x="55" y="280" width="42" height="7" rx="3" transform="rotate(20 55 280)" fill="#F6D58E"/>
+            <rect x="135" y="300" width="45" height="7" rx="3" transform="rotate(-25 135 300)" fill="#F6D58E"/>
+            <rect x="85" y="345" width="42" height="7" rx="3" transform="rotate(12 85 345)" fill="#F6D58E"/>
+            <rect x="42" y="145" width="166" height="112" fill="#FFFFFF" stroke="#2B170E" stroke-width="2"/>
+            <text x="125" y="198" font-family="sans-serif" font-size="14" font-weight="800" fill="#2B170E" text-anchor="middle" letter-spacing="2">BROWMINIE</text>
+            <text x="125" y="220" font-family="sans-serif" font-size="11" font-weight="500" fill="#6B4F43" text-anchor="middle" letter-spacing="3">cake</text>
+          </g>
+          <rect x="230" y="510" width="340" height="44" rx="22" fill="#C68B59"/>
+          <text x="400" y="537" font-family="sans-serif" font-size="16" font-weight="bold" fill="#2B170E" text-anchor="middle" letter-spacing="2">SCOOPABLE BROWNIES • 15K</text>
+        </svg>`;
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+      }
+    }
+
+    const DEFAULT_MENUS = [
+      {
+        id: 'browminie-sekat',
+        name: 'Fudgy Brownies Sekat (Kotak Kecil)',
+        price: 35000,
+        desc: 'Fudgy brownies potongan kotak sekat praktis dengan tekstur lembut dan cokelat lumer di dalam. Lengkap dengan aneka pilihan topping melimpah.',
+        toppings: ['Mix Topping (Choco, Almond, Keju, RV, Lotus)', 'Full Chocochips', 'Almond & Keju', 'Red Velvet & Lotus'],
+        image: createBrowniesIllustration('sekat'),
+        badge: 'Best Seller • 35K',
+        sortOrder: 1
+      },
+      {
+        id: 'browminie-scoopable',
+        name: 'Scoopable Fudgy Brownies',
+        price: 15000,
+        desc: 'Fudgy brownies lumer dalam cup aluminium foil praktis siap sendok. Cocok untuk teman santai atau camilan manis harianmu.',
+        toppings: ['Chocochips Melted', 'Red Velvet & Almond', 'Cheddar Cheese', 'Mix 2 Topping'],
+        image: createBrowniesIllustration('scoopable'),
+        badge: 'Comfort Cup • 15K',
+        sortOrder: 2
+      }
+    ];
+
+    const DEFAULT_SETTINGS = {
+      storeName: 'BROWMINIE CAKE',
+      status: "We're OPEN",
+      orderRule: 'Order max H-3',
+      location: 'Purwokerto Selatan',
+      deliveryInfo: 'Melayani DO, COD & Ambil di Tempat',
+      whatsapp: '628985490037',
+      instagram: 'https://www.instagram.com/browminie.cake?rpxt=MW5zZGx0dDcycHF5cw==',
+      adminPin: '1234'
+    };
+
+    // 2. STATE APLIKASI
+    let menus = [...DEFAULT_MENUS];
+    let orders = [];
+    let storeSettings = { ...DEFAULT_SETTINGS };
+    let cart = {};
+    let selectedToppings = {};
+    let isAdminUnlocked = false;
+    let knownOrderIds = new Set();
+    let isInitialOrdersLoaded = false;
+
+    // Firebase Instances
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'browminie-cake-app';
+
+    // 3. FORMAT RUPIAH & SUARA NOTIFIKASI
+    function formatRupiah(angka) {
+      return 'Rp ' + Number(angka).toLocaleString('id-ID');
+    }
+
+    async function playNotificationBell() {
+      try {
+        if (typeof Tone !== 'undefined') {
+          await Tone.start();
+          const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+          const now = Tone.now();
+          synth.triggerAttackRelease("C5", "8n", now);
+          synth.triggerAttackRelease("E5", "8n", now + 0.14);
+          synth.triggerAttackRelease("G5", "4n", now + 0.28);
+        }
+      } catch (e) {
+        // Abaikan jika browser memblokir autoplay audio sebelum interaksi
+      }
+    }
+
+    function sendBrowserPushNotification(title, body) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification(title, { body });
+        } catch (e) {}
+      }
+    }
+
+    window.testNotificationSound = function () {
+      playNotificationBell();
+      showToast('Suara bel & notifikasi pesanan aktif!');
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    };
+
+    window.dismissOrderBanner = function () {
+      document.getElementById('realtime-order-banner').classList.add('hidden');
+    };
+
+    function triggerIncomingOrderAlert(order) {
+      // 1. Bunyikan bel notifikasi
+      playNotificationBell();
+
+      // 2. Tampilkan banner notifikasi di layar
+      const banner = document.getElementById('realtime-order-banner');
+      const itemsSummary = order.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+      document.getElementById('banner-order-title').textContent = `${order.customerName} (#${order.id})`;
+      document.getElementById('banner-order-detail').textContent = `${itemsSummary} • ${formatRupiah(order.totalPrice)}`;
+      banner.classList.remove('hidden');
+
+      // 3. Notifikasi sistem browser/HP jika diizinkan
+      sendBrowserPushNotification(
+        `Pesanan Baru BROWMINIE CAKE (#${order.id})`,
+        `${order.customerName} memesan ${itemsSummary} (${formatRupiah(order.totalPrice)})`
+      );
+    }
+
+    // 4. INISIALISASI FIREBASE REAL-TIME SYNC (ANTAR SEMUA PERANGKAT)
+    async function initRealtimeSync() {
+      try {
+        if (typeof __firebase_config === 'undefined') {
+          throw new Error('Konfigurasi cloud belum tersedia');
+        }
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+        currentUser = auth.currentUser;
+        if (!currentUser) return;
+
+        // A. Dengarkan Perubahan Pengaturan Toko secara Real-Time
+        const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'storeConfig');
+        onSnapshot(settingsRef, (snap) => {
+          if (snap.exists()) {
+            storeSettings = { ...DEFAULT_SETTINGS, ...snap.data() };
+          } else {
+            setDoc(settingsRef, DEFAULT_SETTINGS).catch(() => {});
+          }
+          applyStoreSettingsUI();
+        }, (err) => console.error('Settings sync error:', err));
+
+        // B. Dengarkan Perubahan Daftar Menu & Foto secara Real-Time
+        const menusCol = collection(db, 'artifacts', appId, 'public', 'data', 'menus');
+        onSnapshot(menusCol, async (snapshot) => {
+          if (snapshot.empty) {
+            // Seed menu bawaan sekali saat pertama kali dijalankan
+            for (const m of DEFAULT_MENUS) {
+              await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', m.id), m);
+            }
+            return;
+          }
+          const fetchedMenus = [];
+          snapshot.forEach((docSnap) => {
+            fetchedMenus.push(docSnap.data());
+          });
+          fetchedMenus.sort((a, b) => (a.sortOrder || 99) - (b.sortOrder || 99));
+          menus = fetchedMenus;
+
+          menus.forEach(m => {
+            if (!selectedToppings[m.id]) {
+              selectedToppings[m.id] = (m.toppings && m.toppings.length > 0) ? m.toppings[0] : 'Original';
+            }
+          });
+
+          applyStoreSettingsUI();
+          renderMenuGrid();
+          if (isAdminUnlocked) renderAdminMenuList();
+        }, (err) => console.error('Menus sync error:', err));
+
+        // C. Dengarkan Pesanan Masuk secara Real-Time dari Seluruh Perangkat
+        const ordersCol = collection(db, 'artifacts', appId, 'public', 'data', 'orders');
+        onSnapshot(ordersCol, (snapshot) => {
+          const fetchedOrders = [];
+          snapshot.forEach((docSnap) => {
+            fetchedOrders.push(docSnap.data());
+          });
+          // Urutkan terbaru di atas berdasarkan timestamp
+          fetchedOrders.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+          // Deteksi pesanan baru yang masuk dari perangkat pembeli
+          if (isInitialOrdersLoaded) {
+            fetchedOrders.forEach(ord => {
+              if (!knownOrderIds.has(ord.id)) {
+                knownOrderIds.add(ord.id);
+                // Munculkan notifikasi suara & banner jika pemilik membuka halaman rekap atau saat order baru masuk
+                if (isAdminUnlocked) {
+                  triggerIncomingOrderAlert(ord);
+                }
+              }
+            });
+          } else {
+            fetchedOrders.forEach(ord => knownOrderIds.add(ord.id));
+            isInitialOrdersLoaded = true;
+          }
+
+          orders = fetchedOrders;
+          updateAdminBadges();
+          if (isAdminUnlocked) {
+            renderAdminDashboard();
+          }
+        }, (err) => console.error('Orders sync error:', err));
+
+      } catch (error) {
+        console.warn('Menjalankan mode standar:', error);
+        applyStoreSettingsUI();
+        renderMenuGrid();
+        updateAdminBadges();
+      }
+    }
+
+    // 5. INISIALISASI DOM
+    window.addEventListener('DOMContentLoaded', () => {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      const defaultOrderDate = new Date(today);
+      defaultOrderDate.setDate(today.getDate() + 3);
+      const defaultDateStr = defaultOrderDate.toISOString().split('T')[0];
+
+      const dateInput = document.getElementById('order-date');
+      if (dateInput) {
+        dateInput.min = todayStr;
+        dateInput.value = defaultDateStr;
+      }
+
+      menus.forEach(m => {
+        selectedToppings[m.id] = (m.toppings && m.toppings.length > 0) ? m.toppings[0] : 'Original';
+      });
+
+      applyStoreSettingsUI();
+      renderMenuGrid();
+      updateCartUI();
+      updateAdminBadges();
+      lucide.createIcons();
+
+      // Mulai sinkronisasi real-time antar perangkat
+      initRealtimeSync();
+    });
+
+    function applyStoreSettingsUI() {
+      document.title = `${storeSettings.storeName} — Brownies & Fudgy Brownies`;
+      
+      const setElText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      const setElHref = (id, val) => { const el = document.getElementById(id); if (el) el.href = val; };
+      const setElVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+
+      setElText('header-store-name', storeSettings.storeName);
+      setElText('footer-store-name', storeSettings.storeName);
+      setElText('copyright-store-name', storeSettings.storeName);
+
+      setElText('topbar-status', storeSettings.status);
+      setElText('topbar-h3', storeSettings.orderRule);
+      setElText('topbar-location', storeSettings.location);
+      setElText('topbar-delivery', storeSettings.deliveryInfo);
+
+      const waUrl = `https://wa.me/${storeSettings.whatsapp}?text=${encodeURIComponent('Halo ' + storeSettings.storeName + ', saya ingin bertanya seputar pemesanan brownies.')}`;
+      const igUrl = storeSettings.instagram;
+
+      setElHref('header-wa-link', waUrl);
+      setElHref('hero-wa-btn', waUrl);
+      setElHref('footer-wa-link', waUrl);
+
+      setElHref('header-ig-link', igUrl);
+      setElHref('hero-ig-btn', igUrl);
+      setElHref('footer-ig-link', igUrl);
+
+      const heroImg = document.getElementById('hero-featured-img');
+      if (heroImg && menus.length > 0) {
+        heroImg.src = menus[0].image;
+      }
+
+      setElVal('setting-store-name', storeSettings.storeName);
+      setElVal('setting-store-status', storeSettings.status);
+      setElVal('setting-store-h3', storeSettings.orderRule);
+      setElVal('setting-store-location', storeSettings.location);
+      setElVal('setting-store-wa', storeSettings.whatsapp);
+      setElVal('setting-store-ig', storeSettings.instagram);
+      setElVal('setting-admin-pin', storeSettings.adminPin || '1234');
+    }
+
+    // 6. RENDER KATALOG MENU
+    window.selectMenuTopping = function (menuId, topping) {
+      selectedToppings[menuId] = topping;
+    };
+
+    window.renderMenuGrid = function () {
+      const grid = document.getElementById('menu-grid');
+      const keyword = document.getElementById('search-menu-input').value.toLowerCase().trim();
+
+      const filtered = menus.filter(item =>
+        item.name.toLowerCase().includes(keyword) || item.desc.toLowerCase().includes(keyword)
+      );
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center bg-white rounded-3xl border border-cream-warm">
+            <p class="font-serif font-bold text-lg text-choco-dark">Menu tidak ditemukan</p>
+            <p class="text-sm text-choco-soft mt-1">Coba kata kunci pencarian lain.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(item => {
+        const currentTopping = selectedToppings[item.id] || (item.toppings && item.toppings[0]) || 'Original';
+        const toppingsOptions = (item.toppings && item.toppings.length > 0)
+          ? item.toppings.map(t => `<option value="${t}" ${t === currentTopping ? 'selected' : ''}>${t}</option>`).join('')
+          : `<option value="Original">Original</option>`;
+
+        let itemTotalQty = 0;
+        Object.values(cart).forEach(c => {
+          if (c.menuId === item.id) itemTotalQty += c.qty;
+        });
+
+        return `
+          <article class="bg-white rounded-3xl border border-cream-warm overflow-hidden shadow-xs hover:shadow-lg transition flex flex-col justify-between group">
+            <div>
+              <div class="relative aspect-[4/3] bg-choco-dark overflow-hidden">
+                <img src="${item.image}" alt="${item.name}"
+                     class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                ${item.badge ? `
+                  <span class="absolute top-3.5 left-3.5 px-3.5 py-1 rounded-full bg-choco-dark/90 backdrop-blur-xs text-caramel-light text-xs font-bold shadow-sm border border-caramel/30">
+                    ${item.badge}
+                  </span>
+                ` : ''}
+                ${itemTotalQty > 0 ? `
+                  <span class="absolute top-3.5 right-3.5 px-3 py-1 rounded-full bg-caramel text-choco-dark text-xs font-extrabold shadow-sm">
+                    ${itemTotalQty} di keranjang
+                  </span>
+                ` : ''}
+              </div>
+
+              <div class="p-6 pb-4 space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                  <h3 class="font-serif font-bold text-xl sm:text-2xl text-choco-dark leading-snug">${item.name}</h3>
+                </div>
+                <p class="text-xs sm:text-sm text-choco-soft leading-relaxed">${item.desc}</p>
+
+                <div class="pt-1">
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-choco-soft mb-1.5">Pilih Varian Topping:</label>
+                  <select onchange="selectMenuTopping('${item.id}', this.value)"
+                          class="w-full px-3.5 py-2.5 rounded-xl bg-cream border border-cream-warm text-xs sm:text-sm font-semibold text-choco-dark focus:outline-none focus:border-choco">
+                    ${toppingsOptions}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-6 pb-6 pt-3 flex items-center justify-between gap-3 border-t border-cream-warm mt-2">
+              <div>
+                <span class="text-[11px] text-choco-soft block">Harga Satuan</span>
+                <span class="font-extrabold text-xl text-choco">${formatRupiah(item.price)}</span>
+              </div>
+
+              <button onclick="addSelectedToCart('${item.id}')"
+                      class="px-5 py-3 rounded-full bg-choco hover:bg-choco-melty text-cream font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition">
+                <i data-lucide="plus" class="w-4 h-4 text-caramel-light"></i>
+                <span>Tambah Pesanan</span>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    };
+
+    // 7. LOGIKA KERANJANG BELANJA
+    window.addSelectedToCart = function (menuId) {
+      const menu = menus.find(m => m.id === menuId);
+      if (!menu) return;
+
+      const topping = selectedToppings[menuId] || (menu.toppings && menu.toppings[0]) || 'Original';
+      const cartKey = `${menuId}::${topping}`;
+
+      if (cart[cartKey]) {
+        cart[cartKey].qty += 1;
+      } else {
+        cart[cartKey] = {
+          key: cartKey,
+          menuId: menu.id,
+          name: menu.name,
+          topping: topping,
+          price: menu.price,
+          qty: 1
+        };
+      }
+
+      showToast(`"${menu.name}" (${topping}) ditambahkan!`);
+      renderMenuGrid();
+      updateCartUI();
+    };
+
+    window.updateCartItemQty = function (cartKey, delta) {
+      if (!cart[cartKey]) return;
+      cart[cartKey].qty += delta;
+      if (cart[cartKey].qty <= 0) {
+        delete cart[cartKey];
+      }
+      renderMenuGrid();
+      updateCartUI();
+    };
+
+    window.clearCart = function () {
+      cart = {};
+      renderMenuGrid();
+      updateCartUI();
+    };
+
+    function updateCartUI() {
+      const entries = Object.values(cart);
+      let totalItems = 0;
+      let totalPrice = 0;
+
+      entries.forEach(item => {
+        totalItems += item.qty;
+        totalPrice += item.price * item.qty;
+      });
+
+      document.getElementById('cart-count-badge').textContent = totalItems;
+
+      const floatingBar = document.getElementById('floating-cart-bar');
+      if (totalItems > 0 && !document.getElementById('customer-view').classList.contains('hidden')) {
+        floatingBar.classList.remove('hidden');
+        document.getElementById('float-item-count').textContent = totalItems;
+        document.getElementById('float-total-price').textContent = formatRupiah(totalPrice);
+      } else {
+        floatingBar.classList.add('hidden');
+      }
+
+      const container = document.getElementById('cart-items-container');
+      const summaryBox = document.getElementById('cart-summary-box');
+      const checkoutForm = document.getElementById('checkout-form');
+      const clearBtn = document.getElementById('clear-cart-btn');
+
+      if (entries.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white p-8 rounded-2xl border border-cream-warm text-center space-y-2">
+            <div class="w-12 h-12 rounded-full bg-cream-warm text-choco mx-auto flex items-center justify-center">
+              <i data-lucide="shopping-bag" class="w-6 h-6"></i>
+            </div>
+            <p class="font-bold text-choco-dark text-sm">Keranjang masih kosong</p>
+            <p class="text-xs text-choco-soft">Silakan pilih menu brownies terlebih dahulu.</p>
+          </div>
+        `;
+        summaryBox.classList.add('hidden');
+        checkoutForm.classList.add('hidden');
+        clearBtn.classList.add('hidden');
+      } else {
+        clearBtn.classList.remove('hidden');
+        summaryBox.classList.remove('hidden');
+        checkoutForm.classList.remove('hidden');
+
+        container.innerHTML = entries.map(item => `
+          <div class="bg-white p-3.5 rounded-2xl border border-cream-warm flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <p class="font-bold text-sm text-choco-dark truncate">${item.name}</p>
+              <p class="text-[11px] text-choco-soft truncate">Topping: <strong class="text-choco-melty">${item.topping}</strong></p>
+              <p class="text-xs text-caramel font-bold mt-0.5">${formatRupiah(item.price)} x ${item.qty}</p>
+            </div>
+            <div class="flex items-center gap-1.5 bg-cream rounded-full px-2 py-1 border border-cream-warm">
+              <button type="button" onclick="updateCartItemQty('${item.key.replace(/'/g, "\\'")}', -1)" class="w-6 h-6 rounded-full hover:bg-cream-warm flex items-center justify-center text-choco-dark">
+                <i data-lucide="minus" class="w-3 h-3"></i>
+              </button>
+              <span class="text-xs font-bold min-w-[18px] text-center">${item.qty}</span>
+              <button type="button" onclick="updateCartItemQty('${item.key.replace(/'/g, "\\'")}', 1)" class="w-6 h-6 rounded-full hover:bg-cream-warm flex items-center justify-center text-choco-dark">
+                <i data-lucide="plus" class="w-3 h-3"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        document.getElementById('drawer-total-qty').textContent = `${totalItems} item`;
+        document.getElementById('drawer-total-price').textContent = formatRupiah(totalPrice);
+      }
+
+      lucide.createIcons();
+    }
+
+    window.openCartDrawer = function () {
+      document.getElementById('cart-drawer-backdrop').classList.remove('hidden');
+      document.getElementById('cart-drawer').classList.remove('translate-x-full');
+      updateCartUI();
+    };
+
+    window.closeCartDrawer = function () {
+      document.getElementById('cart-drawer-backdrop').classList.add('hidden');
+      document.getElementById('cart-drawer').classList.add('translate-x-full');
+    };
+
+    window.toggleAddressField = function () {
+      const method = document.querySelector('input[name="deliveryMethod"]:checked').value;
+      const label = document.getElementById('address-label');
+      const textarea = document.getElementById('order-notes');
+      if (method === 'Ambil di Tempat') {
+        label.textContent = 'Catatan Pesanan & Jam Ambil (Opsional)';
+        textarea.required = false;
+        textarea.placeholder = 'Contoh: Diambil jam 15.00 WIB di Purwokerto Selatan...';
+      } else {
+        label.textContent = 'Alamat Pengiriman / Titik COD & Catatan *';
+        textarea.required = true;
+        textarea.placeholder = 'Masukkan alamat lengkap pengiriman / titik COD area Purwokerto...';
+      }
+    };
+
+    // 8. SUBMIT PESANAN -> SINKRON REAL-TIME + LANGSUNG BUKA NOTIFIKASI KE WHATSAPP ADMIN
+    window.submitOrder = async function (event) {
+      event.preventDefault();
+
+      const entries = Object.values(cart);
+      if (entries.length === 0) return;
+
+      const submitBtn = document.getElementById('submit-order-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Menyimpan Pesanan...</span>';
+
+      let totalPrice = 0;
+      const items = entries.map(i => {
+        totalPrice += i.price * i.qty;
+        return {
+          name: i.name,
+          topping: i.topping,
+          qty: i.qty,
+          price: i.price
+        };
+      });
+
+      const customerName = document.getElementById('order-name').value.trim();
+      const customerPhone = document.getElementById('order-phone').value.trim();
+      const deliveryDate = document.getElementById('order-date').value;
+      const deliveryMethod = document.querySelector('input[name="deliveryMethod"]:checked').value;
+      const notes = document.getElementById('order-notes').value.trim() || '-';
+
+      const now = new Date();
+      const formattedTime = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) +
+                            ', ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      const orderId = 'BRW-' + Math.floor(100 + Math.random() * 900);
+
+      const newOrder = {
+        id: orderId,
+        timestamp: Date.now(),
+        createdAt: formattedTime,
+        customerName,
+        customerPhone,
+        deliveryDate,
+        deliveryMethod,
+        notes,
+        items,
+        totalPrice,
+        status: 'Baru'
+      };
+
+      knownOrderIds.add(orderId);
+
+      // Simpan ke Cloud Real-Time agar langsung muncul di device pemilik toko
+      if (db && currentUser) {
+        try {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), newOrder);
+        } catch (err) {
+          console.error('Gagal menyimpan ke cloud:', err);
+        }
+      } else {
+        orders.unshift(newOrder);
+      }
+
+      clearCart();
+      closeCartDrawer();
+      document.getElementById('checkout-form').reset();
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i data-lucide="send" class="w-4 h-4 text-caramel-light"></i><span>Pesan & Kirim Notifikasi ke WA Admin</span>';
+
+      // Format pesan WhatsApp otomatis ke nomor pemilik toko
+      const itemsText = items.map(i => `• ${i.name} [${i.topping}] (${i.qty}x) = ${formatRupiah(i.price * i.qty)}`).join('\n');
+      const waMessage =
+`🔔 *PESANAN BARU - ${storeSettings.storeName}*
+
+*No. Order:* ${orderId}
+*Nama Pemesan:* ${customerName}
+*No. WA Pemesan:* ${customerPhone}
+*Tanggal Ambil/Kirim:* ${deliveryDate}
+*Metode:* ${deliveryMethod}
+*Alamat / Catatan:* ${notes}
+
+*Rincian Pesanan:*
+${itemsText}
+
+*Total Pembayaran: ${formatRupiah(totalPrice)}*
+
+Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
+
+      const waLink = `https://wa.me/${storeSettings.whatsapp}?text=${encodeURIComponent(waMessage)}`;
+
+      document.getElementById('modal-customer-name').textContent = customerName;
+      document.getElementById('modal-order-id').textContent = '#' + orderId;
+      document.getElementById('modal-order-summary').innerHTML = `
+        <p><strong>Tanggal:</strong> ${deliveryDate} (${deliveryMethod})</p>
+        <p><strong>Menu:</strong> ${items.map(i => `${i.name} - ${i.topping} (${i.qty}x)`).join(', ')}</p>
+        <p class="text-choco font-extrabold pt-1">Total: ${formatRupiah(totalPrice)}</p>
+      `;
+      document.getElementById('modal-wa-send-btn').href = waLink;
+
+      const modal = document.getElementById('success-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+
+      // Otomatis arahkan ke WhatsApp admin agar pemilik toko langsung menerima notifikasi chat di HP
+      setTimeout(() => {
+        window.open(waLink, '_blank');
+      }, 600);
+    };
+
+    window.closeSuccessModal = function () {
+      const modal = document.getElementById('success-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    // 9. KEAMANAN PIN PEMILIK TOKO & NAVIGASI HALAMAN
+    window.handleAdminNavClick = function () {
+      if (isAdminUnlocked) {
+        switchView('admin');
+      } else {
+        const pinModal = document.getElementById('pin-modal');
+        document.getElementById('pin-input').value = '';
+        document.getElementById('pin-error-msg').classList.add('hidden');
+        pinModal.classList.remove('hidden');
+        pinModal.classList.add('flex');
+        setTimeout(() => document.getElementById('pin-input').focus(), 100);
+      }
+    };
+
+    window.closePinModal = function () {
+      const pinModal = document.getElementById('pin-modal');
+      pinModal.classList.add('hidden');
+      pinModal.classList.remove('flex');
+    };
+
+    window.verifyAdminPin = function (event) {
+      event.preventDefault();
+      const inputPin = document.getElementById('pin-input').value.trim();
+      const validPin = storeSettings.adminPin || '1234';
+
+      if (inputPin === validPin) {
+        isAdminUnlocked = true;
+        closePinModal();
+        updateLockIcons();
+        switchView('admin');
+        // Minta izin notifikasi browser saat pemilik membuka dashboard
+        if ("Notification" in window && Notification.permission === "default") {
+          Notification.requestPermission();
+        }
+        showToast('Akses pemilik toko terbuka & notifikasi aktif!');
+      } else {
+        document.getElementById('pin-error-msg').classList.remove('hidden');
+        document.getElementById('pin-input').value = '';
+        document.getElementById('pin-input').focus();
+      }
+    };
+
+    window.lockAdminAndReturn = function () {
+      isAdminUnlocked = false;
+      updateLockIcons();
+      switchView('customer');
+      showToast('Halaman rekap pemilik telah dikunci.');
+    };
+
+    function updateLockIcons() {
+      const iconName = isAdminUnlocked ? 'unlock' : 'lock';
+      const desktopIcon = document.getElementById('admin-lock-icon');
+      const mobileIcon = document.getElementById('admin-lock-icon-mobile');
+      if (desktopIcon) desktopIcon.setAttribute('data-lucide', iconName);
+      if (mobileIcon) mobileIcon.setAttribute('data-lucide', iconName);
+      lucide.createIcons();
+    }
+
+    window.switchView = function (view) {
+      const customerView = document.getElementById('customer-view');
+      const adminView = document.getElementById('admin-view');
+      const floatingBar = document.getElementById('floating-cart-bar');
+
+      if (view === 'admin') {
+        if (!isAdminUnlocked) {
+          handleAdminNavClick();
+          return;
+        }
+        customerView.classList.add('hidden');
+        adminView.classList.remove('hidden');
+        floatingBar.classList.add('hidden');
+        renderAdminDashboard();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        adminView.classList.add('hidden');
+        customerView.classList.remove('hidden');
+        updateCartUI();
+      }
+      lucide.createIcons();
+    };
+
+    window.scrollToSection = function (id) {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    };
+
+    // 10. HALAMAN REKAP PEMILIK & SINKRONISASI CLOUD
+    function updateAdminBadges() {
+      const newCount = orders.filter(o => o.status === 'Baru').length;
+      const displayCount = newCount > 0 ? newCount : orders.length;
+      document.getElementById('admin-badge-count').textContent = displayCount;
+      document.getElementById('admin-badge-mobile').textContent = displayCount;
+    }
+
+    function renderAdminDashboard() {
+      const totalOrders = orders.length;
+      let totalItems = 0;
+      let totalRevenue = 0;
+
+      orders.forEach(o => {
+        totalRevenue += Number(o.totalPrice);
+        o.items.forEach(i => totalItems += Number(i.qty));
+      });
+
+      document.getElementById('stat-total-orders').textContent = totalOrders;
+      document.getElementById('stat-total-items').innerHTML = `${totalItems} <span class="text-sm font-normal text-choco-soft">pcs</span>`;
+      document.getElementById('stat-total-revenue').textContent = formatRupiah(totalRevenue);
+
+      renderAdminOrders();
+      renderAdminMenuList();
+      updateAdminBadges();
+    }
+
+    window.renderAdminOrders = function () {
+      const tbody = document.getElementById('admin-orders-tbody');
+      const emptyState = document.getElementById('empty-orders-state');
+      const statusFilter = document.getElementById('filter-order-status').value;
+
+      const filtered = orders.filter(o => statusFilter === 'Semua' || o.status === statusFilter);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      tbody.innerHTML = filtered.map(order => {
+        const itemsListHtml = order.items.map(i =>
+          `<div class="text-xs"><span class="font-extrabold text-choco">${i.qty}x</span> ${i.name} <span class="text-choco-soft">(${i.topping})</span></div>`
+        ).join('');
+
+        let statusStyle = 'bg-amber-100 text-amber-800 border-amber-200';
+        if (order.status === 'Diproses') statusStyle = 'bg-blue-100 text-blue-800 border-blue-200';
+        if (order.status === 'Selesai') statusStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+
+        const cleanPhone = order.customerPhone.replace(/^0/, '62').replace(/[^0-9]/g, '');
+        const customerWaLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Halo Kak ${order.customerName}, pesanan brownies (${order.id}) di ${storeSettings.storeName} sedang kami proses ya.`)}`;
+
+        return `
+          <tr class="hover:bg-cream/50 transition align-top">
+            <td class="py-4 px-4 whitespace-nowrap">
+              <span class="font-extrabold text-choco block">#${order.id}</span>
+              <span class="text-[11px] text-choco-soft">${order.createdAt}</span>
+            </td>
+            <td class="py-4 px-4">
+              <p class="font-bold text-choco-dark">${order.customerName}</p>
+              <a href="${customerWaLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-emerald-700 hover:underline mt-0.5">
+                <i data-lucide="message-circle" class="w-3 h-3"></i> ${order.customerPhone}
+              </a>
+            </td>
+            <td class="py-4 px-4 space-y-1 min-w-[220px]">
+              ${itemsListHtml}
+              ${order.notes && order.notes !== '-' ? `<p class="text-[11px] text-choco-soft italic mt-1">Alamat/Catatan: "${order.notes}"</p>` : ''}
+            </td>
+            <td class="py-4 px-4 whitespace-nowrap">
+              <span class="font-bold text-xs text-choco-dark block">${order.deliveryDate}</span>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-cream-warm text-choco-dark font-semibold inline-block mt-1">${order.deliveryMethod}</span>
+            </td>
+            <td class="py-4 px-4 whitespace-nowrap font-extrabold text-choco-dark">
+              ${formatRupiah(order.totalPrice)}
+            </td>
+            <td class="py-4 px-4 whitespace-nowrap">
+              <select onchange="updateOrderStatus('${order.id}', this.value)"
+                      class="text-xs font-bold px-3 py-1.5 rounded-full border cursor-pointer focus:outline-none ${statusStyle}">
+                <option value="Baru" ${order.status === 'Baru' ? 'selected' : ''}>Baru</option>
+                <option value="Diproses" ${order.status === 'Diproses' ? 'selected' : ''}>Diproses</option>
+                <option value="Selesai" ${order.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    };
+
+    window.updateOrderStatus = async function (orderId, newStatus) {
+      if (db && currentUser) {
+        try {
+          await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), { status: newStatus });
+          showToast(`Status #${orderId} diperbarui ke "${newStatus}"`);
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        const idx = orders.findIndex(o => o.id === orderId);
+        if (idx !== -1) {
+          orders[idx].status = newStatus;
+          renderAdminOrders();
+          updateAdminBadges();
+        }
+      }
+    };
+
+    window.switchAdminTab = function (tab) {
+      const ordersTab = document.getElementById('admin-tab-orders');
+      const productsTab = document.getElementById('admin-tab-products');
+      const ordersBtn = document.getElementById('tab-orders-btn');
+      const productsBtn = document.getElementById('tab-products-btn');
+      const filterControls = document.getElementById('order-filter-controls');
+
+      if (tab === 'orders') {
+        ordersTab.classList.remove('hidden');
+        productsTab.classList.add('hidden');
+        filterControls.classList.remove('hidden');
+        ordersBtn.className = 'pb-3.5 text-sm font-bold border-b-2 border-choco text-choco-dark transition';
+        productsBtn.className = 'pb-3.5 text-sm font-semibold border-b-2 border-transparent text-choco-soft hover:text-choco-dark transition';
+      } else {
+        productsTab.classList.remove('hidden');
+        ordersTab.classList.add('hidden');
+        filterControls.classList.add('hidden');
+        productsBtn.className = 'pb-3.5 text-sm font-bold border-b-2 border-choco text-choco-dark transition';
+        ordersBtn.className = 'pb-3.5 text-sm font-semibold border-b-2 border-transparent text-choco-soft hover:text-choco-dark transition';
+      }
+    };
+
+    function compressImageFile(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 700;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.78));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.handleReplaceMenuPhoto = function (menuId, inputEl) {
+      const file = inputEl.files && inputEl.files[0];
+      if (!file) return;
+
+      compressImageFile(file, async (dataUrl) => {
+        if (db && currentUser) {
+          try {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', menuId), { image: dataUrl });
+            showToast('Foto menu berhasil diperbarui ke semua perangkat!');
+          } catch (e) {
+            console.error(e);
+          }
+        } else {
+          const idx = menus.findIndex(m => m.id === menuId);
+          if (idx !== -1) {
+            menus[idx].image = dataUrl;
+            applyStoreSettingsUI();
+            renderMenuGrid();
+            renderAdminMenuList();
+          }
+        }
+      });
+    };
+
+    function renderAdminMenuList() {
+      const container = document.getElementById('admin-menu-list');
+      container.innerHTML = menus.map(m => `
+        <div class="bg-cream p-4 rounded-2xl border border-cream-warm flex items-center gap-4">
+          <img src="${m.image}" alt="${m.name}" class="w-20 h-20 rounded-xl object-cover border border-cream-warm shrink-0 bg-choco-dark" />
+          <div class="min-w-0 flex-1 space-y-1.5">
+            <p class="font-bold text-sm text-choco-dark truncate">${m.name}</p>
+            <p class="text-xs font-extrabold text-choco">${formatRupiah(m.price)}</p>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <label class="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-choco hover:bg-choco-melty text-cream text-xs font-bold transition">
+                <i data-lucide="image-plus" class="w-3.5 h-3.5 text-caramel-light"></i>
+                <span>Ganti Foto</span>
+                <input type="file" accept="image/*" onchange="handleReplaceMenuPhoto('${m.id}', this)" class="hidden" />
+              </label>
+              <button onclick="deleteMenu('${m.id}')" class="px-2.5 py-1.5 rounded-lg text-red-700 hover:bg-red-100 text-xs font-semibold transition">
+                Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    window.handleAddMenu = function (event) {
+      event.preventDefault();
+      const name = document.getElementById('new-menu-name').value.trim();
+      const price = Number(document.getElementById('new-menu-price').value);
+      const desc = document.getElementById('new-menu-desc').value.trim();
+      const toppingsRaw = document.getElementById('new-menu-toppings').value.trim();
+      const fileInput = document.getElementById('new-menu-file');
+
+      const toppings = toppingsRaw
+        ? toppingsRaw.split(',').map(t => t.trim()).filter(Boolean)
+        : ['Mix Topping', 'Chocochips', 'Keju'];
+
+      const finalizeAdd = async (imageUrl) => {
+        const newId = 'brw-menu-' + Date.now();
+        const newMenu = {
+          id: newId,
+          name,
+          price,
+          desc,
+          toppings,
+          image: imageUrl,
+          badge: 'Menu Baru',
+          sortOrder: menus.length + 1
+        };
+
+        if (db && currentUser) {
+          await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', newId), newMenu);
+        } else {
+          menus.push(newMenu);
+          renderMenuGrid();
+          renderAdminMenuList();
+        }
+
+        event.target.reset();
+        showToast(`Menu "${name}" berhasil ditambahkan!`);
+      };
+
+      if (fileInput.files && fileInput.files[0]) {
+        compressImageFile(fileInput.files[0], finalizeAdd);
+      } else {
+        finalizeAdd(createBrowniesIllustration('sekat'));
+      }
+    };
+
+    window.deleteMenu = async function (menuId) {
+      if (db && currentUser) {
+        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menus', menuId));
+      } else {
+        menus = menus.filter(m => m.id !== menuId);
+        renderMenuGrid();
+        renderAdminMenuList();
+      }
+      showToast('Menu berhasil dihapus');
+    };
+
+    window.handleSaveStoreSettings = async function (event) {
+      event.preventDefault();
+      const updatedSettings = {
+        storeName: document.getElementById('setting-store-name').value.trim(),
+        status: document.getElementById('setting-store-status').value.trim(),
+        orderRule: document.getElementById('setting-store-h3').value.trim(),
+        location: document.getElementById('setting-store-location').value.trim(),
+        deliveryInfo: storeSettings.deliveryInfo,
+        whatsapp: document.getElementById('setting-store-wa').value.trim().replace(/[^0-9]/g, ''),
+        instagram: document.getElementById('setting-store-ig').value.trim(),
+        adminPin: document.getElementById('setting-admin-pin').value.trim() || '1234'
+      };
+
+      if (db && currentUser) {
+        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'storeConfig'), updatedSettings);
+      } else {
+        storeSettings = updatedSettings;
+        applyStoreSettingsUI();
+      }
+      showToast('Pengaturan toko & PIN berhasil disimpan!');
+    };
+
+    window.exportOrdersCSV = function () {
+      if (orders.length === 0) {
+        showToast('Belum ada data pesanan untuk diunduh.');
+        return;
+      }
+
+      const headers = ['ID Order', 'Waktu Pesan', 'Nama Pemesan', 'No WhatsApp', 'Tanggal Kirim/Ambil', 'Metode', 'Rincian Menu & Topping', 'Total Harga', 'Status', 'Alamat/Catatan'];
+      const rows = orders.map(o => {
+        const itemSummary = o.items.map(i => `${i.name} [${i.topping}] (${i.qty}x)`).join('; ');
+        return [
+          o.id,
+          `"${o.createdAt}"`,
+          `"${o.customerName}"`,
+          `"${o.customerPhone}"`,
+          o.deliveryDate,
+          `"${o.deliveryMethod}"`,
+          `"${itemSummary}"`,
+          o.totalPrice,
+          o.status,
+          `"${o.notes.replace(/"/g, '""')}"`
+        ].join(',');
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Rekap_Pesanan_BROWMINIE_CAKE.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('File rekap Excel (CSV) berhasil diunduh!');
+    };
+
+    window.confirmClearOrders = function () {
+      const modal = document.getElementById('confirm-reset-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    window.closeResetModal = function () {
+      const modal = document.getElementById('confirm-reset-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    window.executeClearOrders = async function () {
+      if (db && currentUser) {
+        const snapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'orders'));
+        const deletePromises = [];
+        snapshot.forEach((docSnap) => {
+          deletePromises.push(deleteDoc(docSnap.ref));
+        });
+        await Promise.all(deletePromises);
+      } else {
+        orders = [];
+        renderAdminDashboard();
+      }
+      knownOrderIds.clear();
+      closeResetModal();
+      showToast('Semua data rekap pesanan telah direset.');
+    };
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'bg-choco-dark text-cream px-4 py-3 rounded-2xl shadow-lg border border-caramel/40 text-xs sm:text-sm font-medium flex items-center gap-2 transition-all duration-300';
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full bg-caramel shrink-0"></span><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+  </script>
+</body>
+</html>
