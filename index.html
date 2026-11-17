@@ -704,33 +704,9 @@
           <button type="submit" class="flex-1 py-2.5 rounded-xl bg-choco hover:bg-choco-melty text-cream font-bold text-sm">Buka Rekap</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL SUKSES ==================== -->
-  <div id="success-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-choco-dark/65 backdrop-blur-xs">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 border border-cream-warm shadow-2xl text-center space-y-5">
-      <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
-        <i data-lucide="check" class="w-8 h-8"></i>
-      </div>
-      <div>
-        <span class="text-xs font-bold uppercase tracking-wider text-caramel">Pesanan Tercatat</span>
-        <h3 class="font-serif text-2xl font-bold text-choco-dark mt-1">Terima Kasih, <span id="modal-customer-name">Kak</span>!</h3>
-        <p class="text-sm text-choco-soft mt-2 leading-relaxed">
-          Pesanan Anda (<strong id="modal-order-id" class="text-choco-dark">#BRW-001</strong>) sudah tercatat. Klik tombol di bawah untuk mengonfirmasi ke WhatsApp <strong>BROWMINIE CAKE</strong>.
-        </p>
-      </div>
-      <div class="bg-cream p-3.5 rounded-2xl border border-cream-warm text-left text-xs text-choco-dark space-y-1 max-h-40 overflow-y-auto" id="modal-order-summary"></div>
-      <div class="space-y-2.5 pt-1">
-        <a id="modal-wa-send-btn" href="https://wa.me/628985490037" target="_blank" rel="noopener noreferrer"
-           class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md transition">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.475 1.331 4.991L2 22l5.184-1.359a9.927 9.927 0 0 0 4.847 1.26h.004c5.515 0 9.969-4.454 9.969-9.969 0-2.663-1.037-5.167-2.92-7.05A9.903 9.903 0 0 0 12.031 2zm5.823 14.129c-.246.693-1.433 1.325-1.988 1.408-.51.076-1.156.108-1.865-.117-.431-.137-.984-.32-1.693-.626-2.979-1.286-4.924-4.285-5.073-4.483-.149-.199-1.211-1.611-1.211-3.073 0-1.462.766-2.181 1.038-2.478.272-.298.594-.372.792-.372.198 0 .396.002.569.01.183.009.428-.069.669.511.246.594.841 2.056.915 2.205.074.149.124.322.025.52-.099.198-.149.322-.297.495-.149.174-.312.388-.446.52-.149.149-.304.31-.131.607.173.298.769 1.269 1.651 2.055 1.135 1.012 2.092 1.326 2.389 1.475.297.149.471.124.644-.074.173-.198.743-.867.941-1.164.198-.298.396-.248.668-.149.272.099 1.733.817 2.03.966.297.149.495.223.569.347.075.124.075.718-.171 1.411z"/>
-          </svg>
-          <span>Kirim Pesanan ke WhatsApp</span>
-        </a>
-        <button onclick="closeSuccessModal()" class="w-full py-2.5 rounded-xl bg-cream-warm hover:bg-caramel-pale text-choco-dark font-semibold text-sm transition">
-          Tutup & Kembali ke Beranda
+      <div class="pt-1 border-t border-cream-warm">
+        <button type="button" onclick="resetAdminPinToDefault()" class="text-[11px] text-choco-soft hover:text-choco underline font-medium">
+          Lupa PIN? Reset ulang ke 1234
         </button>
       </div>
     </div>
@@ -912,7 +888,7 @@
         if (resSettings.ok) {
           const settingsData = await resSettings.json();
           if (settingsData && settingsData.storeName) {
-            window.storeSettings = { ...window.storeSettings, ...settingsData };
+            window.storeSettings = { ...window.storeSettings, ...settingsData, adminPin: '1234' };
             localStorage.setItem('brw_settings_v1', JSON.stringify(window.storeSettings));
             window.applyStoreSettingsUI();
           }
@@ -1152,7 +1128,8 @@
 
     window.menus = JSON.parse(localStorage.getItem('brw_menus_v1')) || DEFAULT_MENUS;
     window.orders = JSON.parse(localStorage.getItem('brw_orders_v1')) || [];
-    window.storeSettings = { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem('brw_settings_v1')) || {}) };
+    window.storeSettings = { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem('brw_settings_v1')) || {}), adminPin: '1234' };
+    localStorage.setItem('brw_settings_v1', JSON.stringify(window.storeSettings));
     let cart = {};
     let selectedToppings = {};
     let isAdminUnlocked = false;
@@ -1655,6 +1632,20 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       showToast('Halaman Rekap Pemilik dikunci kembali.');
     }
 
+    async function resetAdminPinToDefault() {
+      window.storeSettings.adminPin = '1234';
+      localStorage.setItem('brw_settings_v1', JSON.stringify(window.storeSettings));
+      if (window.cloudSaveSettings) {
+        await window.cloudSaveSettings(window.storeSettings);
+      }
+      const input = document.getElementById('pin-input');
+      const err = document.getElementById('pin-error-msg');
+      if (input) input.value = '1234';
+      if (err) err.classList.add('hidden');
+      window.applyStoreSettingsUI();
+      showToast('Sandi berhasil direset ke 1234! Klik "Buka Rekap".');
+    }
+
     function switchView(view) {
       const customerView = document.getElementById('customer-view');
       const adminView = document.getElementById('admin-view');
@@ -1977,7 +1968,7 @@ Mohon konfirmasi pesanan saya ya Kak. Terima kasih!`;
       window.storeSettings = {
         ...window.storeSettings,
         storeName: document.getElementById('setting-store-name').value.trim(),
-        adminPin: newPin || '6789',
+        adminPin: newPin || '1234',
         status: document.getElementById('setting-store-status').value.trim(),
         orderRule: document.getElementById('setting-store-h3').value.trim(),
         whatsapp: document.getElementById('setting-store-wa').value.trim().replace(/[^0-9]/g, ''),
